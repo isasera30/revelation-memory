@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2f6f5e" />
+  <title>계시록 암기 v5 Backup Safe</title>
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="계시록 암기" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <p class="eyebrow">개역한글판 · 요한계시록 암기</p>
+      <h1>📖 계시록 암기</h1>
+    </div>
+    <div class="topActions"><button id="settingsBtn" class="ghost">⚙️ 설정</button></div>
+  </header>
+
+  <section id="settingsPanel" class="panel settingsPanel hidden">
+    <div class="sectionTitle">
+      <div>
+        <h2>⚙️ 설정</h2>
+        <p class="note">자주 쓰지 않는 기능은 이곳에 모았습니다.</p>
+      </div>
+      <button id="closeSettingsBtn" class="ghost">닫기</button>
+    </div>
+    <div class="settingsGrid">
+      <button id="backupBtn" class="secondary">☁️ 백업 저장</button>
+      <label class="secondary fileBtn">☁️ 백업 불러오기<input id="restoreInput" type="file" accept="application/json" /></label>
+      <div id="backupStatusBox" class="backupStatusBox"></div>
+      <button id="openImportFromSettingsBtn" class="secondary">📂 본문 등록 관리</button>
+      <div class="settingsResetCard">
+        <div class="settingsResetHeader">
+          <div class="settingsResetTitle">🗑 초기화</div>
+          <button id="toggleSettingsResetBtn" type="button" class="secondary">▼ 펼치기</button>
+        </div>
+        <div id="settingsResetContent" class="settingsResetGroup resetButtonsGrid hidden">
+          <button id="resetRecordsOnlyBtn" class="ghost danger">학습기록 초기화</button>
+          <button id="resetMemoryDataBtn" class="ghost danger">암기현황 초기화</button>
+          <button id="resetWrongNoteDataBtn" class="ghost danger">오답노트 초기화</button>
+          <button id="resetStudyDataBtn" class="ghost danger resetAllStudyBtn">공부 데이터 전체 초기화</button>
+        </div>
+      </div>
+      <button id="darkModeBtn" class="secondary">🌙 다크모드</button>
+      <button id="installHelpBtn" class="secondary">📱 앱 설치 안내</button>
+    </div>
+    <p id="installHelpText" class="note hidden">모바일 브라우저에서 공유 버튼 또는 메뉴를 누른 뒤 ‘홈 화면에 추가’를 선택하면 앱처럼 사용할 수 있습니다.</p>
+  </section>
+
+
+  <section id="importPanel" class="panel hidden">
+    <div class="sectionTitle">
+      <div>
+        <h2>📖 본문 등록</h2>
+        <p class="note">YouVersion 크롬에서 요한계시록을 <b>1장씩 복사</b>해서 붙여넣고 저장하세요.</p>
+      </div>
+      <div class="importTitleActions"><button id="hideImportBtn" class="secondary">본문 등록 닫기</button><button id="sampleBtn" class="secondary">예시 넣기</button></div>
+    </div>
+
+    <div id="importStatus" class="statusBox"></div>
+
+    <div class="grid two">
+      <label>등록할 장
+        <select id="chapterInput">
+          <option value="1">1장</option><option value="2">2장</option><option value="3">3장</option>
+          <option value="4">4장</option><option value="5">5장</option><option value="6">6장</option>
+          <option value="7">7장</option><option value="8">8장</option><option value="9">9장</option>
+          <option value="10">10장</option><option value="11">11장</option><option value="12">12장</option>
+          <option value="13">13장</option><option value="14">14장</option><option value="15">15장</option>
+          <option value="16">16장</option><option value="17">17장</option><option value="18">18장</option>
+          <option value="19">19장</option><option value="20">20장</option><option value="21">21장</option>
+          <option value="22">22장</option>
+        </select>
+      </label>
+      <label>등록 방식
+        <select disabled><option>선택한 장 추가/교체</option></select>
+      </label>
+    </div>
+
+    <textarea id="chapterText" rows="9" placeholder="예: 1예수 그리스도의 계시라 ... 2요한은 ... 3이 예언의 말씀을 ..."></textarea>
+
+    <div class="actions">
+      <button id="saveChapterBtn" class="primary">이 장 저장하기</button>
+      <button id="clearTextBtn" class="secondary">입력칸 비우기</button>
+      <button id="resetVersesBtn" class="ghost danger">본문 전체 삭제</button>
+    </div>
+
+    <div id="saveMessage" class="message"></div>
+  </section>
+<section id="achievementPanel" class="panel">
+    <div class="sectionTitle">
+      <h2>🏆 성취 배지</h2>
+      <button id="toggleAchievementBtn" type="button" class="secondary">▲ 접기</button>
+    </div>
+    <div id="achievementContent">
+      <div id="achievementList" class="achievementGrid"></div>
+    </div>
+  </section>
+
+<section id="studyTimelinePanel" class="panel">
+    <div class="sectionTitle">
+      <h2>📅 최근 공부 타임라인</h2>
+      <button id="toggleTimelineBtn" type="button" class="secondary">▲ 접기</button>
+    </div>
+    <div id="timelineContent">
+      <div id="studyTimelineList" class="list"></div>
+    </div>
+  </section>
+
+<section id="wrongNotePanel" class="panel">
+    <div class="sectionTitle">
+      <div>
+        <h2>📕 오답노트</h2>
+        <p class="note">시험에서 틀린 절이 자동으로 모입니다. 3회 연속 맞히면 해결됨으로 표시됩니다.</p>
+      </div>
+      <div class="actions compactActions">
+        <button id="toggleWrongNoteBtn" type="button" class="secondary">▲ 접기</button>
+        <button id="startWrongNoteBtn" class="primary">오답만 시험보기</button>
+      </div>
+    </div>
+    <div id="wrongNoteContent">
+      <div id="wrongNoteList" class="list"></div>
+    </div>
+  </section>
+
+<section id="todayReviewPanel" class="panel">
+    <div class="sectionTitle">
+      <div>
+        <h2>⭐ 오늘의 복습</h2>
+        <p class="note">틀렸거나 복습 날짜가 된 절을 우선으로 보여줍니다.</p>
+      </div>
+      <div class="actions compactActions">
+        <button id="toggleTodayReviewBtn" type="button" class="secondary">▲ 접기</button>
+        <button id="startReviewBtn" class="primary">복습 시작</button>
+      </div>
+    </div>
+    <div id="todayReviewContent">
+      <div id="todayReviewList" class="list"></div>
+    </div>
+  </section>
+
+  <section id="memoryStatusPanel" class="panel">
+    <div class="sectionTitle">
+      <h2>📊 암기 현황</h2>
+      <button id="toggleMemoryStatusBtn" class="secondary">▲ 접기</button>
+    </div>
+    <div id="dashboard" class="cards"></div>
+    <div id="memoryDetailArea">
+      <div class="progress"><div id="progressBar"></div></div>
+      <div id="chapterGrid" class="chapterGrid"></div>
+      <div id="memoryChapterCheckArea" class="memoryChapterCheckArea hidden"></div>
+      <div id="todayMemorizedList" class="list todayMemorizedList"></div>
+    </div>
+  </section>
+  
+
+  
+
+<section id="readingPanel" class="panel">
+    <div class="sectionTitle">
+      <div>
+        <h2>📖 본문 읽기 & 공부</h2>
+        <p class="note">등록한 개역한글 요한계시록 본문을 장별로 보면서 공부할 수 있습니다.</p>
+      </div>
+      <div class="readingTimerActions"><button id="startReadingBtn" class="secondary">▶ 읽기 시작</button><button id="pauseReadingBtn" class="secondary hidden">⏸ 일시정지</button><button id="saveReadSessionBtn" class="secondary">💾 읽기 기록 저장</button></div>
+    </div>
+    <div id="readingTimerDisplay" class="readingTimerDisplay">읽는 시간 00:00</div>
+    <div class="grid two">
+      <label>읽을 장
+        <select id="readChapterSelect"></select>
+      </label>
+      <label>보기 방식
+        <select id="readModeSelect">
+          <option value="all">전체 보기</option>
+          <option value="hide">본문 가리기</option>
+        </select>
+      </label>
+    </div>
+    <div class="actions">
+      <button id="prevChapterBtn" class="secondary">이전 장</button>
+      <button id="nextChapterBtn" class="secondary">다음 장</button>
+      <button id="startChapterExamBtn" class="primary">이 장 시험보기</button>
+      <button id="toggleReadingBtn" class="secondary readingToggleBtn">▲ 본문 접기</button>
+    </div>
+    <div id="readingContent" class="readingContent"></div>
+    <div id="bookmarkList" class="list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>✍️ 시험 설정</h2>
+    <div class="grid four">
+      <label>범위<select id="rangeSelect"></select></label>
+      <label>모드
+        <select id="modeSelect">
+          <option value="write">장절 보고 전체 구절 쓰기</option>
+          <option value="blank">빈칸 채우기</option>
+          <option value="ref">구절 보고 장절 맞히기</option>
+          <option value="review">오늘의 복습</option>
+          <option value="favorite">즐겨찾기</option>
+          <option value="confuse">헷갈림 노트</option>
+        </select>
+      </label>
+      <label id="countSelectLabel">문제 수
+        <select id="countSelect">
+          <option value="5">5문제</option>
+          <option value="10" selected>10문제</option>
+          <option value="20">20문제</option>
+          <option value="all">전체</option>
+        </select>
+      </label>
+      <label>출제 방식
+        <select id="orderSelect">
+          <option value="sequence" selected>순서대로</option>
+          <option value="random">랜덤</option>
+          <option value="bulk">전체 한번에 작성</option>
+        </select>
+      </label>
+      <label>힌트
+        <select id="hintModeSelect">
+          <option value="off" selected>OFF</option>
+          <option value="initial">첫 글자</option>
+          <option value="blank">빈칸</option>
+        </select>
+      </label>
+    </div>
+    <div id="customRangePanel" class="customRangePanel hidden">
+      <div class="grid two">
+        <label>시작
+          <div class="rangePair">
+            <select id="customStartChapter"></select>
+            <select id="customStartVerse"></select>
+          </div>
+        </label>
+        <label>끝
+          <div class="rangePair">
+            <select id="customEndChapter"></select>
+            <select id="customEndVerse"></select>
+          </div>
+        </label>
+      </div>
+    </div>
+    <div id="rangePreview" class="rangePreview note"></div>
+    <button id="startBtn" class="primary">시험 시작</button>
+    <p class="note">시험 중 타이머는 보이지 않고, 종료 후 소요 시간만 표시됩니다. 오타 허용 없음.</p>
+  </section>
+
+  <section id="examPanel" class="panel hidden">
+    <p id="examProgress" class="eyebrow"></p>
+    <h2 id="questionTitle"></h2>
+    <div id="questionBody" class="question"></div>
+    <textarea id="answerInput" rows="6" placeholder="정답을 입력하세요"></textarea>
+    <div id="hintBox" class="hint hidden"></div>
+    <div class="actions">
+      <button id="favoriteBtn" class="secondary">⭐ 즐겨찾기</button>
+      <button id="confuseBtn" class="secondary">📝 헷갈림 저장</button>
+      <button id="hintBtn" class="secondary">힌트 보기</button>
+      <button id="submitBtn" type="button" class="primary">정답 제출</button>
+      <button id="finishBtn" class="secondary hidden">시험 종료</button>
+    </div>
+    <div id="feedback" class="feedback hidden"></div>
+    <div class="actions">
+      <button id="nextBtn" class="secondary hidden">다음 문제</button>
+    </div>
+  </section>
+
+  <section id="bulkExamPanel" class="panel hidden">
+    <p id="bulkExamProgress" class="eyebrow"></p>
+    <h2 id="bulkExamTitle">전체 한번에 작성</h2>
+    <p class="note">선택한 범위의 모든 절을 한 번에 작성한 뒤 채점합니다.</p>
+    <div id="bulkQuestionArea">
+      <div id="bulkQuestionList" class="bulkQuestionList"></div>
+      <div class="actions bulkActions">
+        <button id="bulkSubmitBtn" type="button" class="primary">전체 정답 제출</button>
+        <button id="bulkFinishBtn" type="button" class="secondary hidden">결과 보기</button>
+      </div>
+    </div>
+    <div id="bulkFeedback" class="feedback hidden"></div>
+    <div id="bulkResultActions" class="actions bulkResultActions hidden">
+      <button id="bulkCloseResultBtn" type="button" class="secondary">결과 닫기</button>
+      <button id="bulkCloseExamBtn" type="button" class="secondary">시험창 닫기</button>
+      <button id="bulkShowExamBtn" type="button" class="secondary hidden">시험창 보기</button>
+      <button id="bulkRetryBtn" type="button" class="primary">다시 풀기</button>
+      <button id="bulkResetAllBtn" type="button" class="secondary danger">시험 종료</button>
+    </div>
+  </section>
+
+  <section id="resultPanel" class="panel hidden">
+    <h2>시험 결과</h2>
+    <div id="resultCards" class="cards"></div>
+    <textarea id="reflectionText" rows="3" placeholder="오늘 공부 후 감사/묵상 메모를 남겨도 좋아요."></textarea>
+    <div class="actions">
+      <button id="saveReflectionBtn" class="secondary">묵상 저장</button>
+      <button id="newExamBtn" class="primary">새 시험</button>
+    </div>
+  </section>
+
+  <section id="searchPanel" class="panel">
+    <h2>🔍 장·절 검색</h2>
+    <input id="searchInput" class="searchInput" placeholder="예: 생명책 · 3:20 · 22" />
+    <div id="searchResults" class="list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>⭐ 즐겨찾기 절</h2>
+    <div id="favoriteList" class="list"></div>
+  </section>
+
+  <section class="panel">
+    <h2>📝 헷갈림 노트</h2>
+    <div id="confuseList" class="list"></div>
+  </section>
+
+  <section id="prayerPanel" class="panel">
+    <div class="sectionTitle">
+      <h2>🙏 기도 제목 & 묵상</h2>
+      <button id="togglePrayerPanelBtn" type="button" class="secondary">▲ 접기</button>
+    </div>
+    <div id="prayerPanelContent">
+      <div class="grid two">
+        <label>분류
+          <select id="prayerType">
+            <option>기도제목</option>
+            <option>감사</option>
+            <option>묵상</option>
+            <option>가족</option>
+            <option>건강</option>
+            <option>교회</option>
+            <option>기타</option>
+          </select>
+        </label>
+        <label>상태
+          <select id="prayerStatus">
+            <option>진행중</option>
+            <option>응답/완료</option>
+          </select>
+        </label>
+      </div>
+
+      <label id="prayerTitleWrap">기도 제목
+        <input id="prayerTitleInput" class="searchInput" placeholder="예: 약속의 목자, 열매, 사명, 구역" />
+      </label>
+
+      <input id="prayerEditId" type="hidden" />
+      <textarea id="prayerText" rows="4" placeholder="기도 제목이나 감사, 묵상을 적어두세요."></textarea>
+
+      <div id="prayerActionRow" class="actions">
+        <button id="savePrayerBtn" class="primary">저장</button>
+        <button id="cancelPrayerEditBtn" class="secondary hidden">수정 취소</button>
+      </div>
+
+      <div class="grid two prayerTools">
+        <label>검색
+          <input id="prayerSearchInput" class="searchInput" placeholder="기도 제목 검색" />
+        </label>
+        <label>필터
+          <select id="prayerFilterSelect">
+            <option value="all">전체</option>
+            <option value="진행중">진행중</option>
+            <option value="응답/완료">응답됨</option>
+            <option value="기도제목">기도제목</option>
+            <option value="감사">감사</option>
+            <option value="묵상">묵상</option>
+            <option value="가족">가족</option>
+            <option value="건강">건강</option>
+            <option value="교회">교회</option>
+            <option value="기타">기타</option>
+          </select>
+        </label>
+      </div>
+
+      <div id="prayerList" class="list"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="sectionTitle calendarTitleRow">
+      <h2>📅 공부 캘린더</h2>
+      <div class="calendarMonthNav calendarMonthNavWithStreak">
+        <span id="currentStreakLabel" class="calendarStreakPill">🔥 현재 0일</span>
+        <div class="calendarMonthCenter">
+          <button id="prevCalendarMonthBtn" type="button" class="secondary">◀</button>
+          <b id="calendarMonthLabel"></b>
+          <button id="nextCalendarMonthBtn" type="button" class="secondary">▶</button>
+        </div>
+        <span id="bestStreakLabel" class="calendarStreakPill">🏆 최고 0일</span>
+      </div>
+    </div>
+    <div id="calendar" class="calendar"></div>
+    <div id="calendarDayDetail" class="calendarDayDetail hidden"></div>
+  </section>
+
+  <section id="deepStatsPanel" class="panel">
+    <div class="sectionTitle">
+      <h2>📈 나의 암기 기록</h2>
+      <button id="toggleDeepStatsBtn" type="button" class="secondary">▲ 접기</button>
+    </div>
+    <div id="deepStatsContent">
+      <div id="deepStats" class="cards"></div>
+      <div id="achievements" class="list"></div>
+    </div>
+  </section>
+
+  <section id="recordsPanel" class="panel">
+    <div class="sectionTitle">
+      <h2>🧾 학습 기록</h2>
+      <button id="toggleRecordsBtn" type="button" class="secondary">▲ 접기</button>
+    </div>
+    <div id="recordsContent">
+      <div id="studyCards" class="cards"></div>
+      <div id="historyList" class="list"></div>
+      <button id="resetRecordsBtn" class="ghost danger">학습 기록 초기화</button>
+    </div>
+  </section>
+</div>
+<script src="app.js"></script>
+
+<script>
+(function(){
+  function applyPrayerCollapse(){
+    var content = document.getElementById("prayerPanelContent");
+    var btn = document.getElementById("togglePrayerPanelBtn");
+    if(!content || !btn) return;
+    var collapsed = localStorage.getItem("gm10_prayerPanelCollapsed") === "1";
+    content.classList.toggle("hidden", collapsed);
+    btn.textContent = collapsed ? "▼ 펼치기" : "▲ 접기";
+  }
+
+  window.addEventListener("DOMContentLoaded", function(){
+    var btn = document.getElementById("togglePrayerPanelBtn");
+    if(!btn) return;
+    btn.addEventListener("click", function(){
+      var collapsed = localStorage.getItem("gm10_prayerPanelCollapsed") === "1";
+      localStorage.setItem("gm10_prayerPanelCollapsed", collapsed ? "0" : "1");
+      applyPrayerCollapse();
+    });
+    applyPrayerCollapse();
+  });
+})();
+</script>
+
+</body>
+</html>

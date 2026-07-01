@@ -1,0 +1,1036 @@
+*{box-sizing:border-box}body{margin:0;background:#f7f1e8;color:#2b2520;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}.app{max-width:1080px;margin:0 auto;padding:28px 18px 70px}header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:22px}h1{font-size:34px;margin:0;letter-spacing:-.05em}h2{font-size:22px;margin:0 0 14px;letter-spacing:-.04em}.eyebrow{margin:0 0 6px;color:#866f58;font-size:13px;font-weight:800}.panel{background:#fffaf3;border:1px solid #e8d8c6;border-radius:20px;padding:22px;margin:16px 0;box-shadow:0 8px 24px rgba(75,48,22,.055)}.sectionTitle{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.topActions,.actions{display:flex;gap:10px;flex-wrap:wrap}.note{color:#806953;line-height:1.65;font-size:14px;margin:6px 0 0}.grid{display:grid;gap:14px;margin-top:12px}.two{grid-template-columns:1fr 1fr}.four{grid-template-columns:repeat(4,1fr)}label{display:flex;flex-direction:column;gap:7px;font-weight:900;color:#5f4a38;font-size:14px}select,textarea{width:100%;border:1px solid #d8c7b4;border-radius:16px;background:#fff;padding:14px;font-size:17px;color:#2b2520}textarea{line-height:1.75;resize:vertical;margin-top:12px}button,.fileBtn{border:0;border-radius:999px;padding:12px 18px;font-size:15px;font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.primary{background:#2f765f;color:#fff}.secondary{background:#e8dccd;color:#2b2520}.ghost{background:transparent;border:1px solid #d8c7b4;color:#5f4a38}.danger{color:#a13d32}.fileBtn input{display:none}.hidden{display:none!important}.statusBox{background:#f7f1e8;border:1px solid #eadccb;border-radius:16px;padding:14px;margin:14px 0}.message{margin-top:12px;font-weight:900;line-height:1.6}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.card{background:#f7f1e8;border:1px solid #eadccb;border-radius:16px;padding:14px;min-height:78px}.card strong{display:block;font-size:22px;margin-top:4px}.progress{height:18px;border-radius:999px;background:#eadccb;overflow:hidden;margin:14px 0}.progress div{height:100%;width:0;background:#2f765f;transition:.25s}.chapterGrid{display:grid;grid-template-columns:repeat(11,1fr);gap:7px}.chapterBox{background:#fff;border:1px solid #eadccb;border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;line-height:1.45}.chapterBox.done{background:#e5f3ea;border-color:#b7ddc4;font-weight:900}.chapterBox.partial{background:#fff6d9;border-color:#ead58a;font-weight:900}.question{background:#f7f1e8;border-radius:16px;padding:16px;line-height:1.8;white-space:pre-wrap}.hint{background:#fff6d9;border:1px solid #ead58a;border-radius:16px;padding:14px;margin-top:12px;white-space:pre-wrap}.feedback{border-radius:16px;padding:14px;margin-top:12px;line-height:1.8;white-space:pre-wrap}.feedback.ok{background:#e5f3ea;border:1px solid #b7ddc4}.feedback.no{background:#fff0ea;border:1px solid #f1c1ad}.list{display:grid;gap:10px;margin-top:12px}.item{background:#fff;border:1px solid #eadccb;border-radius:16px;padding:14px;line-height:1.7}.badge{display:inline-flex;border-radius:999px;background:#f7f1e8;border:1px solid #eadccb;padding:3px 8px;font-size:12px;margin-right:4px}.smallBtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.smallBtns button{font-size:12px;padding:8px 12px}.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}.day{background:#fff;border:1px solid #eadccb;border-radius:14px;min-height:68px;padding:8px;font-size:12px}.day.active{background:#e5f3ea;border-color:#b7ddc4}.day.today{outline:2px solid #2f765f}@media(max-width:800px){header{flex-direction:column}.two,.four,.cards{grid-template-columns:1fr 1fr}.chapterGrid{grid-template-columns:repeat(6,1fr)}}@media(max-width:520px){.app{padding:18px 12px 50px}h1{font-size:28px}.panel{padding:16px}.two,.four,.cards{grid-template-columns:1fr}button,.fileBtn{width:100%}.sectionTitle{flex-direction:column}.chapterGrid{grid-template-columns:repeat(4,1fr)}.calendar{gap:5px}.day{min-height:58px;padding:6px}}
+.compactPanel{padding:18px 22px}
+.compactComplete{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.compactComplete h2{margin-bottom:4px}
+.importTitleActions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:520px){
+  .compactComplete{flex-direction:column;align-items:flex-start}
+  .importTitleActions{width:100%}
+}
+
+.settingsGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.searchInput{width:100%;border:1px solid #d8c7b4;border-radius:16px;background:#fff;padding:14px;font-size:17px;color:#2b2520;margin-top:8px}
+body.dark{background:#171512;color:#f3eadf}
+body.dark .panel, body.dark .item, body.dark .day, body.dark .chapterBox{background:#24201b;border-color:#4a3d32;color:#f3eadf}
+body.dark .card, body.dark .question, body.dark .statusBox{background:#1d1a16;border-color:#4a3d32;color:#f3eadf}
+body.dark select, body.dark textarea, body.dark .searchInput{background:#171512;color:#f3eadf;border-color:#4a3d32}
+body.dark .note, body.dark .eyebrow{color:#c9b7a3}
+body.dark .ghost{color:#f3eadf;border-color:#5b4b3f}
+body.dark .secondary{background:#3a3129;color:#f3eadf}
+.achievement{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.achievement.locked{opacity:.45}
+.miniBar{height:10px;border-radius:999px;background:#eadccb;overflow:hidden;margin-top:8px}
+.miniBar span{display:block;height:100%;background:#2f765f}
+@media(max-width:520px){.settingsGrid{grid-template-columns:1fr}}
+
+.readingContent{display:grid;gap:10px;margin-top:14px}
+.verseRead{background:#fff;border:1px solid #eadccb;border-radius:16px;padding:14px;line-height:1.85}
+.verseRead b{display:inline-flex;min-width:46px;color:#2f765f}
+.verseText.hiddenText{filter:blur(6px);user-select:none}
+.verseRead .smallBtns{margin-top:10px}
+body.dark .verseRead{background:#24201b;border-color:#4a3d32;color:#f3eadf}
+body.dark .verseRead b{color:#8bd1b3}
+
+.chapterBox .chapterProgressText{font-weight:900;margin-top:3px}
+.chapterBox .chapterMiniBar{height:7px;background:#eadccb;border-radius:999px;overflow:hidden;margin-top:6px}
+.chapterBox .chapterMiniBar span{display:block;height:100%;background:#2f765f}
+body.dark .chapterBox .chapterMiniBar{background:#4a3d32}
+
+.selectButton{border-radius:16px;width:100%;height:54px}
+
+.bookmarkToast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2f765f;color:#fff;padding:12px 18px;border-radius:999px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:.2s;z-index:9999}
+.bookmarkToast.show{opacity:1}
+.subTitle{font-size:18px;margin:18px 0 8px}
+.bookmarkItem{display:flex;justify-content:space-between;gap:10px;align-items:center}
+@media(max-width:520px){.bookmarkItem{flex-direction:column;align-items:flex-start}}
+
+.prayerTools{margin-top:14px}
+.prayerItem.answered{opacity:.78}
+.prayerHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.prayerTextView{white-space:pre-wrap;margin:10px 0;font-size:16px;line-height:1.7}
+
+#prayerTitleWrap{margin-top:14px}
+
+.readingToggleBtn{margin-top:14px}
+
+/* Reading panel layout polish */
+#readingPanel .grid.two{
+  margin-top:18px;
+  row-gap:18px;
+  column-gap:20px;
+}
+
+#readingPanel .actions{
+  margin-top:22px;
+  gap:14px;
+  align-items:center;
+}
+
+#readingPanel .readingToggleBtn{
+  margin-top:0;
+}
+
+#readingPanel .readingContent{
+  margin-top:24px;
+}
+
+#readingPanel select{
+  margin-top:4px;
+}
+
+@media(max-width:700px){
+  #readingPanel .actions{
+    gap:10px;
+  }
+  #readingPanel .actions button{
+    width:auto;
+    flex:1 1 calc(50% - 10px);
+  }
+}
+
+.favItem{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.favText{line-height:1.6}
+@media(max-width:700px){.favItem{flex-direction:column;align-items:flex-start}}
+
+.miniToast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2f765f;color:#fff;padding:12px 18px;border-radius:999px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;pointer-events:none;transition:.2s;z-index:9999}
+.miniToast.show{opacity:1}
+
+.wrongPart{color:#c62828;font-weight:900;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.feedback.ok{background:#e6f4ee;border:1px solid #a9d8c5;color:#1f6b54;border-radius:16px;padding:14px;margin-top:14px;font-weight:900;white-space:pre-wrap;line-height:1.7}
+.feedback.no{background:#fff0ed;border:1px solid #efb7aa;color:#9a3b2f;border-radius:16px;padding:14px;margin-top:14px;font-weight:900;white-space:pre-wrap;line-height:1.7}
+
+/* Clean exam feedback */
+.feedback.no{color:#2b2520!important}
+.feedback.no b{color:#9a3b2f}
+.wrongPart{color:#c62828!important;font-weight:900;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.feedback .note{display:block;margin-top:18px;color:#7b6554;font-weight:800}
+
+/* Exam button layout polish */
+#examPanel .actions{
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+#submitBtn + #finishBtn{
+  margin-left:0;
+}
+
+/* Keep exam action buttons visually separated from feedback */
+#examPanel .feedback + .actions,
+#examPanel #feedback + .actions{
+  margin-top:28px;
+}
+
+/* Uniform button spacing based on the approved 시험 시작 button spacing */
+#startBtn{
+  margin-top:12px !important;
+  margin-bottom:16px !important;
+}
+
+/* 본문 읽기 & 공부: 버튼 줄 간격 */
+#readingPanel .actions{
+  margin-top:12px !important;
+  margin-bottom:16px !important;
+  gap:14px;
+}
+
+/* 기도 제목 & 묵상: 저장 버튼 간격 */
+#savePrayerBtn{
+  margin-top:12px !important;
+  margin-bottom:16px !important;
+}
+
+/* 학습 기록: 초기화 버튼 간격 */
+#resetRecordsBtn{
+  margin-top:12px !important;
+  margin-bottom:16px !important;
+}
+
+/* 다음 문제 버튼도 과하게 떨어지지 않게 정리 */
+#nextBtn{
+  margin-top:12px !important;
+}
+
+
+/* Exam action buttons spacing - based on spacing_uniform version */
+#examPanel .actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px !important;
+  row-gap:16px !important;
+  margin-top:18px !important;
+}
+#examPanel #favoriteBtn,
+#examPanel #confuseBtn,
+#examPanel #hintBtn,
+#examPanel #submitBtn,
+#examPanel #finishBtn{
+  margin-right:0 !important;
+}
+
+
+/* Prayer-only precise fix */
+#prayerActionRow{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  flex-wrap:wrap !important;
+  margin-top:12px !important;
+  margin-bottom:16px !important;
+}
+
+/* Normal state: save only. Edit state: same-size save/cancel. */
+#prayerActionRow #savePrayerBtn,
+#prayerActionRow #cancelPrayerEditBtn{
+  width:116px !important;
+  min-width:116px !important;
+  max-width:116px !important;
+  height:48px !important;
+  min-height:48px !important;
+  max-height:48px !important;
+  padding:0 18px !important;
+  border-radius:999px !important;
+  font-size:15px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  flex:0 0 116px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+}
+
+#prayerActionRow #cancelPrayerEditBtn{
+  background:#e8dccd !important;
+  color:#2b2520 !important;
+}
+
+#prayerActionRow #cancelPrayerEditBtn.hidden{
+  display:none !important;
+}
+
+/* Search/filter: same row, aligned, a bit narrower */
+.prayerTools{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) !important;
+  gap:18px !important;
+  max-width:760px !important;
+  margin-top:18px !important;
+}
+
+.prayerTools label{
+  width:100% !important;
+  max-width:100% !important;
+  align-self:start !important;
+}
+
+.prayerTools #prayerSearchInput,
+.prayerTools #prayerFilterSelect{
+  width:100% !important;
+  height:56px !important;
+  min-height:56px !important;
+  max-height:56px !important;
+  padding:12px 14px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+}
+
+@media(max-width:800px){
+  .prayerTools{
+    max-width:none !important;
+    grid-template-columns:1fr !important;
+  }
+}
+
+
+/* Exam hint/result collapse controls */
+.collapseHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.collapseBody{
+  margin-top:12px;
+}
+.miniCollapseBtn{
+  padding:6px 10px !important;
+  font-size:12px !important;
+  white-space:nowrap;
+}
+
+
+/* Memory status collapse */
+#memoryStatusPanel .sectionTitle{
+  align-items:center;
+}
+#toggleMemoryStatusBtn{
+  padding:8px 14px !important;
+  font-size:13px !important;
+  white-space:nowrap;
+}
+#memoryDetailArea.hidden{
+  display:none !important;
+}
+
+
+/* Reading timer controls */
+.readingTimerActions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.readingTimerDisplay{
+  margin:14px 0 10px;
+  font-weight:900;
+  color:#6f5a47;
+}
+.readingTimerActions button{
+  white-space:nowrap;
+}
+
+
+/* Custom exam range */
+.customRangePanel{
+  margin-top:14px;
+  background:#f7f1e8;
+  border:1px solid #eadccb;
+  border-radius:16px;
+  padding:14px;
+}
+.rangePair{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.rangePreview{
+  margin:12px 0 0;
+  font-weight:900;
+}
+@media(max-width:520px){
+  .rangePair{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* Custom exam range fixed */
+.customRangePanel.hidden{display:none !important;}
+.customRangePanel{
+  margin-top:14px;
+  background:#f7f1e8;
+  border:1px solid #eadccb;
+  border-radius:16px;
+  padding:14px;
+}
+.rangePair{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.rangePreview{
+  margin:12px 0 0;
+  font-weight:900;
+}
+@media(max-width:520px){
+  .rangePair{grid-template-columns:1fr;}
+}
+
+
+/* Exam order and bulk exam */
+#countSelectLabel.hidden{display:none !important;}
+.bulkQuestionList{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.bulkQuestionItem{
+  border:1px solid #eadccb;
+  border-radius:16px;
+  padding:16px;
+  background:#fffaf3;
+}
+.smallQuestion{
+  margin:10px 0;
+  padding:12px 14px;
+}
+.bulkAnswerInput{
+  width:100%;
+  box-sizing:border-box;
+}
+.bulkWrong{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(160,60,50,.25);
+}
+
+
+/* Wrong answer highlight from user base */
+.feedback.no .collapseBody,
+.feedback.no .bulkWrong{
+  color:#2b2520 !important;
+}
+.feedback.no .wrongPart,
+.wrongPart{
+  color:#c82323 !important;
+  font-weight:900;
+  text-decoration:underline;
+}
+
+
+/* Bulk exam button spacing and result controls */
+.bulkActions{
+  margin-top:18px !important;
+}
+.bulkResultActions{
+  margin-top:14px !important;
+}
+.bulkResultActions.hidden{
+  display:none !important;
+}
+
+
+/* Bulk reset button */
+.bulkResultActions .danger{
+  background:#f3d7d0 !important;
+  color:#8a2d1f !important;
+}
+
+
+/* Bulk question area visibility */
+#bulkQuestionArea.hidden{
+  display:none !important;
+}
+
+
+/* Bulk reopen question button */
+#bulkShowExamBtn.hidden{
+  display:none !important;
+}
+
+
+/* Final bulk exam button roles */
+#bulkQuestionArea.hidden,
+#bulkShowExamBtn.hidden,
+.bulkResultActions.hidden{
+  display:none !important;
+}
+.bulkResultActions .danger{
+  background:#f3d7d0 !important;
+  color:#8a2d1f !important;
+}
+
+
+/* Collapsible record panels */
+#deepStatsContent.hidden,
+#recordsContent.hidden{
+  display:none !important;
+}
+#toggleDeepStatsBtn,
+#toggleRecordsBtn{
+  padding:8px 14px !important;
+  font-size:13px !important;
+  white-space:nowrap;
+}
+
+
+/* Prayer panel collapse */
+#prayerPanelContent.hidden{
+  display:none !important;
+}
+#togglePrayerPanelBtn{
+  padding:8px 14px !important;
+  font-size:13px !important;
+  white-space:nowrap;
+}
+
+
+/* Wrong note and smart review */
+#wrongNotePanel .miniLine{
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid rgba(120,90,60,.14);
+}
+#wrongNotePanel details summary{
+  cursor:pointer;
+}
+
+
+/* Memorized check */
+#memorizedCheckPanel .miniStatus{
+  min-height:20px;
+  display:flex;
+  align-items:center;
+}
+.memorizedVerseItem{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px 14px;
+  border:1px solid rgba(120,90,60,.16);
+  border-radius:14px;
+  margin:8px 0;
+  background:rgba(255,250,243,.74);
+}
+.memorizedVerseItem input{
+  margin-top:4px;
+  transform:scale(1.15);
+}
+.memorizedVerseItem span{
+  line-height:1.55;
+}
+
+
+/* Integrated memory check - design safe */
+.chapterBox.memoryChapterBtn{
+  cursor:pointer;
+}
+.chapterBox.memoryChapterBtn.selectedChapter{
+  outline:3px solid rgba(47,127,99,.28);
+}
+.chapterBox.memoryChapterBtn.heatHigh{
+  background:rgba(47,127,99,.08);
+}
+.chapterBox.memoryChapterBtn.heatMid{
+  background:rgba(231,176,77,.10);
+}
+.chapterBox.memoryChapterBtn.heatLow{
+  background:rgba(166,84,55,.07);
+}
+.memoryChapterCheckArea{
+  margin-top:18px;
+  padding:18px;
+  border:1px solid rgba(120,90,60,.18);
+  border-radius:18px;
+  background:rgba(255,250,243,.78);
+}
+.memoryChapterCheckArea.hidden{
+  display:none !important;
+}
+.memoryCheckHeader{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:12px;
+}
+.compactActions{
+  margin:0;
+  gap:8px;
+}
+.compactActions button{
+  padding:8px 12px !important;
+  font-size:13px !important;
+}
+.memorizedVerseItem{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px 14px;
+  border:1px solid rgba(120,90,60,.16);
+  border-radius:14px;
+  margin:8px 0;
+  background:rgba(255,255,255,.62);
+}
+.memorizedVerseItem input{
+  margin-top:4px;
+  transform:scale(1.15);
+}
+.todayMemorizedList{
+  margin-top:16px;
+}
+@media(max-width:700px){
+  .memoryCheckHeader{flex-direction:column;}
+}
+
+
+/* Wrong note / today review collapse */
+#wrongNoteContent.hidden,
+#todayReviewContent.hidden{
+  display:none !important;
+}
+#toggleWrongNoteBtn,
+#toggleTodayReviewBtn{
+  padding:8px 14px !important;
+  font-size:13px !important;
+  white-space:nowrap;
+}
+#wrongNotePanel .compactActions,
+#todayReviewPanel .compactActions{
+  margin:0;
+  gap:8px;
+}
+
+
+/* Hint mode */
+#hintModeSelect{
+  min-width:120px;
+}
+
+
+/* Settings reset group */
+.settingsResetGroup{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+.settingsResetGroup button{
+  font-size:13px !important;
+  padding:8px 12px !important;
+}
+
+
+/* Settings reset layout fix */
+.settingsResetGroup{
+  display:grid !important;
+  grid-template-columns:repeat(3, minmax(130px, 1fr));
+  gap:8px !important;
+  align-items:start;
+  margin-top:8px;
+}
+.settingsResetGroup button{
+  width:100% !important;
+  min-height:auto !important;
+  align-self:start !important;
+  font-size:13px !important;
+  padding:8px 12px !important;
+  line-height:1.3 !important;
+}
+.settingsResetGroup .resetAllStudyBtn{
+  grid-column:auto !important;
+}
+#openImportFromSettingsBtn{
+  min-height:auto !important;
+}
+@media(max-width:900px){
+  .settingsResetGroup{
+    grid-template-columns:repeat(2, minmax(130px, 1fr));
+  }
+}
+@media(max-width:560px){
+  .settingsResetGroup{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* Settings reset card layout */
+.settingsGrid{
+  align-items:start !important;
+}
+.settingsGrid > button,
+.settingsGrid > label.fileBtn{
+  min-height:64px !important;
+  align-self:start !important;
+}
+.settingsResetCard{
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:16px;
+  background:rgba(255,250,243,.55);
+  align-self:start !important;
+}
+.settingsResetTitle{
+  font-weight:900;
+  font-size:16px;
+  margin-bottom:10px;
+  color:var(--text);
+}
+.settingsResetCard .settingsResetGroup{
+  display:grid !important;
+  grid-template-columns:repeat(2, minmax(130px, 1fr));
+  gap:8px !important;
+  margin:0 !important;
+}
+.settingsResetCard .settingsResetGroup button{
+  width:100% !important;
+  min-height:42px !important;
+  height:auto !important;
+  padding:8px 10px !important;
+  font-size:13px !important;
+  line-height:1.3 !important;
+}
+.settingsResetCard .resetAllStudyBtn{
+  grid-column:1 / -1 !important;
+}
+#openImportFromSettingsBtn,
+#darkModeBtn,
+#installHelpBtn,
+#backupBtn,
+.settingsGrid .fileBtn{
+  height:64px !important;
+}
+@media(max-width:700px){
+  .settingsResetCard .settingsResetGroup{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* Settings reset collapse */
+.settingsResetHeader{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.settingsResetHeader .settingsResetTitle{
+  margin-bottom:0 !important;
+}
+#toggleSettingsResetBtn{
+  padding:6px 12px !important;
+  font-size:12px !important;
+  white-space:nowrap;
+}
+#settingsResetContent.hidden{
+  display:none !important;
+}
+
+
+/* Settings reset collapse click fix */
+#settingsResetContent{
+  display:grid;
+}
+#settingsResetContent.hidden{
+  display:none !important;
+}
+
+
+/* Native settings reset collapse */
+#settingsResetContent.hidden{
+  display:none !important;
+}
+#settingsResetContent:not(.hidden){
+  display:grid !important;
+}
+
+
+/* Search numeric upgrade */
+.searchQuickItem .miniBtn{
+  margin-top:8px;
+  padding:8px 12px !important;
+  font-size:13px !important;
+}
+
+
+/* Memory check date */
+.memoryDate{
+  display:inline-block;
+  margin-left:8px;
+  padding:3px 8px;
+  border-radius:999px;
+  background:rgba(120,90,60,.10);
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+}
+
+
+/* Achievements / timeline / wrong priority */
+.achievementGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+}
+.achievementBadge{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  background:rgba(255,250,243,.7);
+}
+.achievementBadge.locked{
+  opacity:.48;
+}
+.achievementIcon{
+  font-size:26px;
+}
+.timelineLine{
+  margin-top:6px;
+  line-height:1.45;
+}
+.wrongStars{
+  display:inline-block;
+  margin-left:6px;
+  font-size:12px;
+  letter-spacing:1px;
+  color:#b7664b;
+}
+.wrongSummary .badge{
+  margin-top:8px;
+}
+#achievementContent.hidden,
+#timelineContent.hidden{
+  display:none !important;
+}
+
+
+/* v3 spacing/collapse/order fix */
+#achievementContent.hidden,
+#timelineContent.hidden{
+  display:none !important;
+}
+
+
+/* Calendar month navigation/detail */
+.calendarTitleRow{
+  align-items:center;
+}
+.calendarMonthNav{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.calendarMonthNav button{
+  padding:8px 12px !important;
+  font-size:13px !important;
+}
+#calendarMonthLabel{
+  min-width:110px;
+  text-align:center;
+}
+.calendarClickableDay{
+  cursor:pointer;
+}
+.selectedCalendarDay{
+  outline:3px solid var(--green);
+  background:rgba(46,128,97,.12) !important;
+}
+.calendarDayDetail{
+  margin-top:14px;
+}
+.calendarDayDetail.hidden{
+  display:none !important;
+}
+
+
+/* Calendar streak + summary */
+.calendarMonthNavWithStreak{
+  display:grid !important;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  width:100%;
+  gap:10px;
+}
+.calendarMonthCenter{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+.calendarStreakPill{
+  font-size:13px;
+  font-weight:800;
+  color:var(--muted);
+  white-space:nowrap;
+}
+#currentStreakLabel{
+  justify-self:start;
+}
+#bestStreakLabel{
+  justify-self:end;
+}
+.calendarMiniSummary{
+  display:inline-block;
+  margin-top:2px;
+  font-size:11px;
+  line-height:1.25;
+  white-space:nowrap;
+}
+@media(max-width:700px){
+  .calendarMonthNavWithStreak{
+    grid-template-columns:1fr;
+    justify-items:center;
+  }
+  #currentStreakLabel,
+  #bestStreakLabel{
+    justify-self:center;
+  }
+}
+
+
+/* Calendar title/streak spacing fix */
+.calendarTitleRow{
+  display:grid !important;
+  grid-template-columns:auto 1fr !important;
+  align-items:center !important;
+  gap:16px !important;
+}
+.calendarTitleRow h2{
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+  min-width:max-content !important;
+}
+.calendarMonthNavWithStreak{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:18px !important;
+  width:100% !important;
+}
+.calendarMonthCenter{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+.calendarStreakPill{
+  font-size:13px !important;
+  white-space:nowrap !important;
+}
+#currentStreakLabel,
+#bestStreakLabel{
+  justify-self:auto !important;
+}
+#calendarMonthLabel{
+  min-width:108px !important;
+  text-align:center !important;
+}
+@media(max-width:760px){
+  .calendarTitleRow{
+    grid-template-columns:1fr !important;
+  }
+  .calendarMonthNavWithStreak{
+    flex-wrap:wrap !important;
+    gap:10px !important;
+  }
+}
+
+
+/* Calendar center alignment + spacing refinement */
+.calendarTitleRow{
+  display:block !important;
+}
+.calendarTitleRow h2{
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+  margin-bottom:16px !important;
+}
+.calendarMonthNavWithStreak{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:16px !important;
+  width:100% !important;
+  margin:8px auto 22px auto !important;
+}
+.calendarMonthCenter{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+.calendarStreakPill{
+  font-size:13px !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
+#calendar{
+  margin-top:8px !important;
+}
+@media(max-width:760px){
+  .calendarMonthNavWithStreak{
+    flex-wrap:wrap !important;
+    gap:10px !important;
+  }
+}
+
+
+/* Open verse highlight */
+.flashVerseBox{
+  outline:3px solid var(--green) !important;
+  background:rgba(46,128,97,.10) !important;
+  transition:background .3s ease, outline .3s ease;
+}
+
+
+/* Settings reset buttons: exact 2x2 layout */
+#settingsResetContent.resetButtonsGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+#settingsResetContent.resetButtonsGrid.hidden{
+  display:none !important;
+}
+#settingsResetContent.resetButtonsGrid > button{
+  width:100%;
+}
+#settingsResetContent.resetButtonsGrid .resetAllStudyBtn{
+  grid-column:auto !important;
+}
+@media(max-width:760px){
+  #settingsResetContent.resetButtonsGrid{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* v4 Stable mobile polish */
+html, body{
+  max-width:100%;
+  overflow-x:hidden;
+}
+body{
+  padding-left:env(safe-area-inset-left);
+  padding-right:env(safe-area-inset-right);
+}
+button, input, select, textarea{
+  font-size:16px;
+}
+button{
+  min-height:40px;
+}
+.app{
+  width:min(1120px, 100%);
+}
+@media(max-width:520px){
+  .panel{
+    padding-left:14px;
+    padding-right:14px;
+  }
+  .calendarMiniSummary{
+    font-size:10px;
+    white-space:normal;
+  }
+  .achievementGrid{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* v5 Backup status */
+.backupStatusBox{
+  grid-column:1 / -1;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px 14px;
+  line-height:1.5;
+  background:rgba(255,250,243,.72);
+}
+.backupStatusBox b{
+  display:block;
+  margin-bottom:2px;
+}
+.backupStatusBox span{
+  color:var(--muted);
+  font-weight:700;
+}
+.backupStatusBox small{
+  color:var(--muted);
+}
+.backupStatusBox.safe{
+  background:rgba(46,128,97,.08);
+}
+.backupStatusBox.warn{
+  background:rgba(218,151,55,.10);
+}
+.backupStatusBox.danger{
+  background:rgba(191,84,64,.10);
+}
