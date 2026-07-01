@@ -1298,3 +1298,244 @@ button{
     width:100% !important;
   }
 }
+
+
+/* v5.7 About + mobile button row polish */
+.aboutAppBox{
+  grid-column:1 / -1;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,250,243,.76);
+  padding:16px;
+}
+.aboutAppBox.hidden{display:none!important;}
+.aboutAppInner h3{margin:0 0 12px 0;}
+.aboutRows{
+  display:grid;
+  gap:10px;
+}
+.aboutRows > div{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+  padding:8px 0;
+}
+.aboutRows span{
+  color:var(--muted);
+  font-weight:700;
+  text-align:right;
+}
+
+@media(max-width:760px){
+  /* 암기현황: 전체 선택/전체 해제/닫기 한 줄 */
+  .memoryCheckHeader .compactActions{
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .memoryCheckHeader .compactActions button{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding-left:8px!important;
+    padding-right:8px!important;
+    white-space:nowrap!important;
+    font-size:14px!important;
+  }
+
+  /* 본문 읽기: 보기/저장/헷갈림/책갈피 한 줄 */
+  .verseReadActions{
+    display:grid!important;
+    grid-template-columns:repeat(4,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .verseReadActions button{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding-left:4px!important;
+    padding-right:4px!important;
+    white-space:nowrap!important;
+    font-size:13px!important;
+  }
+
+  .aboutRows > div{
+    flex-direction:column;
+    gap:4px;
+  }
+  .aboutRows span{
+    text-align:left;
+  }
+}
+
+@media(max-width:390px){
+  .memoryCheckHeader .compactActions button{
+    font-size:13px!important;
+    padding-left:5px!important;
+    padding-right:5px!important;
+  }
+  .verseReadActions{
+    gap:6px!important;
+  }
+  .verseReadActions button{
+    font-size:12px!important;
+    padding-left:2px!important;
+    padding-right:2px!important;
+  }
+}
+
+
+
+
+
+
+
+
+/* v5.12 PC-only: restore v4-style compact reading buttons */
+@media(min-width:761px){
+  /* 본문 안의 보기/가리기 · 저장 · 헷갈림 · 책갈피: v4 Stable 크기 */
+  #readingPanel .verseReadActions,
+  #readingPanel .verseRead .smallBtns{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    gap:8px !important;
+    align-items:center !important;
+    width:auto !important;
+  }
+
+  #readingPanel .verseReadActions button,
+  #readingPanel .verseRead .smallBtns button{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    font-size:12px !important;
+    padding:8px 12px !important;
+    height:auto !important;
+    min-height:0 !important;
+    line-height:1.2 !important;
+    border-radius:999px !important;
+    margin:0 !important;
+    white-space:nowrap !important;
+  }
+
+  /* 이전 장 · 다음 장 · 이 장 시험보기 · 본문 펼치기/접기: PC에서 보기 좋게 축소 */
+  #readingPanel .actions button,
+  #readingPanel #prevChapterBtn,
+  #readingPanel #nextChapterBtn,
+  #readingPanel #startChapterExamBtn,
+  #readingPanel #toggleReadingBtn{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    font-size:14px !important;
+    padding:10px 16px !important;
+    min-height:42px !important;
+    height:42px !important;
+    line-height:1.2 !important;
+    border-radius:999px !important;
+    white-space:nowrap !important;
+  }
+
+  #readingPanel .actions{
+    gap:10px !important;
+    align-items:center !important;
+    flex-wrap:wrap !important;
+  }
+
+  /* 읽기 시작 · 읽는 중 · 이어서 읽기 · 일시정지 · 읽기 기록 저장: 작게 유지 */
+  #readingPanel .readingTimerActions{
+    display:flex !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    gap:10px !important;
+    flex-wrap:wrap !important;
+    width:auto !important;
+  }
+
+  #readingPanel #startReadingBtn,
+  #readingPanel #pauseReadingBtn,
+  #readingPanel #saveReadSessionBtn{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    font-size:14px !important;
+    padding:10px 16px !important;
+    min-height:42px !important;
+    height:42px !important;
+    line-height:1.2 !important;
+    border-radius:999px !important;
+    white-space:nowrap !important;
+  }
+}
+
+
+/* v5.13 PC-only: collapse and note/list action buttons alignment */
+@media(min-width:761px){
+  /* 성취 배지 / 최근 공부 타임라인 펼치기: 오답노트 버튼 크기 기준으로 축소 */
+  #achievementPanel #toggleAchievementBtn,
+  #studyTimelinePanel #toggleTimelineBtn{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    height:42px !important;
+    min-height:42px !important;
+    max-height:42px !important;
+    padding:0 18px !important;
+    border-radius:999px !important;
+    font-size:14px !important;
+    line-height:42px !important;
+    white-space:nowrap !important;
+    margin-left:auto !important;
+  }
+
+  /* 즐겨찾기 절 / 헷갈림 노트: 버튼을 저장한 책갈피처럼 오른쪽 한 줄 배치 */
+  #favoriteList .item,
+  #confuseList .item{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:18px !important;
+  }
+
+  #favoriteList .item > div:first-child,
+  #confuseList .item > div:first-child{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  #favoriteList .smallBtns,
+  #confuseList .smallBtns{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:10px !important;
+    width:auto !important;
+    margin-top:0 !important;
+    flex:0 0 auto !important;
+  }
+
+  #favoriteList .smallBtns button,
+  #confuseList .smallBtns button{
+    width:auto !important;
+    min-width:64px !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    height:38px !important;
+    min-height:38px !important;
+    padding:0 18px !important;
+    border-radius:999px !important;
+    font-size:13px !important;
+    line-height:38px !important;
+    white-space:nowrap !important;
+    margin:0 !important;
+  }
+}

@@ -1454,7 +1454,7 @@ function renderReading(){
     return `<div class="verseRead" id="versebox-${v.chapter}-${v.verse}" onclick="saveLastRead(${v.chapter},${v.verse})">
       <b>${v.chapter}:${v.verse}</b>
       <span class="verseText ${hide?"hiddenText":""}" id="read-${v.chapter}-${v.verse}">${esc(v.text)}</span>
-      <div class="smallBtns">
+      <div class="smallBtns verseReadActions">
         <button class="secondary" onclick="event.stopPropagation();toggleReadText('${v.chapter}-${v.verse}')">보기/가리기</button>
         <button class="secondary" onclick="event.stopPropagation();markReadFavorite('${kq}')">${r.fav?"⭐ 해제":"⭐ 저장"}</button>
         <button class="secondary" onclick="event.stopPropagation();markReadConfuse('${kq}')">📝 헷갈림</button>
@@ -1566,7 +1566,7 @@ function renderBookmarks(){
   const s=settings();
   const list=s.bookmarks||[];
   el.bookmarkList.innerHTML=list.length
-    ? `<h3 class="subTitle">📌 저장한 책갈피</h3>` + list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
+    ? `<h3 class="subTitle">📌 저장한 책갈피</h3>` + list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
     : "";
 }
 
@@ -1808,7 +1808,7 @@ function renderLists(){
     el.favoriteList.innerHTML=fav.map(v=>`
       <div class="item favItem">
         <div class="favText"><b>계${v.chapter}:${v.verse}</b> ${esc(shortVerseText(v.text))}</div>
-        <div class="smallBtns">
+        <div class="smallBtns verseReadActions">
           <button class="secondary" onclick="openVerseFromList(${v.chapter},${v.verse})">열기</button>
           <button class="ghost danger" onclick="deleteFavoriteVerse(${v.chapter},${v.verse})">삭제</button>
         </div>
@@ -1824,7 +1824,7 @@ function renderLists(){
           <b>계${v.chapter}:${v.verse}</b> ${esc(shortVerseText(v.text))}
           ${m[kq]?.confuseMemo?`<div class="note">메모: ${esc(m[kq].confuseMemo)}</div>`:""}
         </div>
-        <div class="smallBtns">
+        <div class="smallBtns verseReadActions">
           <button class="secondary" onclick="openVerseFromList(${v.chapter},${v.verse})">열기</button>
           <button class="secondary" onclick="resolveConfuse('${kq}')">해결</button>
           <button class="ghost danger" onclick="deleteConfuseVerse('${kq}')">삭제</button>
@@ -1936,7 +1936,7 @@ function renderPrayer(){
         </div>
       </div>
       ${p.text?`<div class="prayerTextView">${esc(p.text)}</div>`:""}
-      <div class="smallBtns">
+      <div class="smallBtns verseReadActions">
         <button class="secondary" onclick="editPrayer(${p.id})">✏️ 수정</button>
         <button class="secondary" onclick="togglePrayerAnswered(${p.id})">${p.status==="응답/완료"?"↩️ 진행중":"✅ 응답 완료"}</button>
         <button class="secondary" onclick="togglePrayerPin(${p.id})">${p.pinned?"📌 고정 해제":"📌 고정"}</button>
@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.6-restore-no-render";
+const APP_VERSION="5.13-pc-buttons-layout";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2344,6 +2344,34 @@ function renderBackupStatus(){
   const info=backupStatusInfo();
   box.className=`backupStatusBox ${info.level}`;
   box.innerHTML=`<b>${info.icon} 백업 상태 · ${info.title}</b><br><span>${info.detail}</span><br><small>새 브라우저/새 휴대폰에서는 백업 불러오기로 복원할 수 있습니다.</small>`;
+}
+
+
+function renderAboutApp(){
+  const box=document.getElementById("aboutAppBox");
+  if(!box)return;
+  const all=verses();
+  const meta=getBackupMeta ? getBackupMeta() : {};
+  const lastBackup=meta.lastBackupAt ? formatDateTime(meta.lastBackupAt) : "백업 기록 없음";
+  box.innerHTML=`
+    <div class="aboutAppInner">
+      <h3>ℹ️ 앱 정보</h3>
+      <div class="aboutRows">
+        <div><b>앱 이름</b><span>계시록 암기</span></div>
+        <div><b>버전</b><span>${APP_VERSION||"unknown"}</span></div>
+        <div><b>본문</b><span>요한계시록 ${all.length||0}절</span></div>
+        <div><b>저장 방식</b><span>기기/브라우저 내부 저장</span></div>
+        <div><b>마지막 백업</b><span>${lastBackup}</span></div>
+      </div>
+      <p class="note">친구들은 링크만 눌러 사용할 수 있고, 각자의 학습 데이터는 각자 기기에 따로 저장됩니다.</p>
+    </div>`;
+}
+
+function toggleAboutApp(){
+  const box=document.getElementById("aboutAppBox");
+  if(!box)return;
+  renderAboutApp();
+  box.classList.toggle("hidden");
 }
 
 function maybeShowBackupReminder(){
@@ -2674,6 +2702,8 @@ if(el.openImportFromSettingsBtn) el.openImportFromSettingsBtn.onclick=()=>{
 };
 if(el.darkModeBtn) el.darkModeBtn.onclick=()=>{const s=settings();s.dark=!s.dark;setSettings(s);applyDarkMode();};
 if(el.installHelpBtn) el.installHelpBtn.onclick=()=>el.installHelpText.classList.toggle("hidden");
+const aboutAppBtn=document.getElementById("aboutAppBtn");
+if(aboutAppBtn) aboutAppBtn.onclick=toggleAboutApp;
 if(document.getElementById("toggleSettingsResetBtn"))document.getElementById("toggleSettingsResetBtn").onclick=()=>{
   setSettingsResetPanelCollapsed(!getSettingsResetPanelCollapsed());
   applySettingsResetPanelCollapse();
