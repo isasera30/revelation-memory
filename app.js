@@ -2295,7 +2295,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.2-mobile-ui-polish";
+const APP_VERSION="5.3-restore-fix";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2374,40 +2374,85 @@ function backup(){
   renderBackupStatus();
   alert(`✅ 백업 파일을 만들었습니다.\n\n파일명: ${filename}\n\n파일 앱/iCloud/Google Drive 등에 보관해두면 새 기기에서도 복원할 수 있습니다.`);
 }
+
+function isPlainObjectForRestore(x){
+  return !!x && typeof x==="object" && !Array.isArray(x);
+}
+
+function normalizeBackupForRestore(d){
+  if(!isPlainObjectForRestore(d))throw new Error("백업 데이터가 객체 형식이 아닙니다.");
+  const hasAny = Array.isArray(d.verses) || isPlainObjectForRestore(d.memory) || Array.isArray(d.records) || Array.isArray(d.prayers) || isPlainObjectForRestore(d.settings);
+  if(!hasAny)throw new Error("계시록 암기 백업 데이터가 아닙니다.");
+  if(d.verses && !Array.isArray(d.verses))throw new Error("본문 데이터 형식이 올바르지 않습니다.");
+  if(d.memory && !isPlainObjectForRestore(d.memory))throw new Error("암기 데이터 형식이 올바르지 않습니다.");
+  if(d.records && !Array.isArray(d.records))throw new Error("학습기록 데이터 형식이 올바르지 않습니다.");
+  if(d.prayers && !Array.isArray(d.prayers))throw new Error("기도/묵상 데이터 형식이 올바르지 않습니다.");
+  if(d.settings && !isPlainObjectForRestore(d.settings))throw new Error("설정 데이터 형식이 올바르지 않습니다.");
+  return d;
+}
+
+function mergeSettingsForRestore(oldSettings){
+  const current=settings();
+  const incoming=isPlainObjectForRestore(oldSettings)?oldSettings:{};
+  const merged=Object.assign({}, current, incoming);
+  delete merged.todayReviewClearedDate;
+  merged.panelCollapsed=Object.assign({}, current.panelCollapsed||{}, incoming.panelCollapsed||{});
+  merged.wrongReviewCollapsed=Object.assign({}, current.wrongReviewCollapsed||{}, incoming.wrongReviewCollapsed||{});
+  merged.reviewCollapseV2=Object.assign({}, current.reviewCollapseV2||{}, incoming.reviewCollapseV2||{});
+  merged.listCollapsed=Object.assign({}, current.listCollapsed||{}, incoming.listCollapsed||{});
+  merged.simpleCollapsed=Object.assign({}, current.simpleCollapsed||{}, incoming.simpleCollapsed||{});
+  merged.achievementTimelineCollapsed=Object.assign({}, current.achievementTimelineCollapsed||{}, incoming.achievementTimelineCollapsed||{});
+  return merged;
+}
+
 function restore(file){
   if(!file){
     alert("백업 파일을 선택하지 않았습니다.");
     return;
   }
+
   const r=new FileReader();
+
   r.onload=()=>{
+    let d;
     try{
-      const d=JSON.parse(String(r.result||""));
-      if(!d || typeof d!=="object"){
-        throw new Error("백업 데이터 형식이 아닙니다.");
-      }
-      const hasKnownData = d.verses || d.memory || d.records || d.prayers || d.settings;
-      if(!hasKnownData){
-        throw new Error("계시록 암기 백업 파일이 아닙니다.");
-      }
-      if(d.verses)set(K.verses,d.verses);
-      if(d.memory)set(K.memory,d.memory);
-      if(d.records)set(K.records,d.records);
-      if(d.prayers)set(K.prayers,d.prayers);
-      if(d.settings)set(K.settings,d.settings);
-      setBackupMeta({lastRestoreAt:Date.now(),lastRestoreFileName:file.name||"backup.json"});
-      renderAll();
-      alert("백업을 불러왔습니다.");
+      d=normalizeBackupForRestore(JSON.parse(String(r.result||"")));
     }catch(err){
-      alert("백업 파일을 읽지 못했습니다.\n\n확인해주세요:\n- .json 백업 파일인지\n- ZIP 파일을 선택한 것은 아닌지\n- 다른 앱의 파일은 아닌지");
+      alert("백업 파일을 읽지 못했습니다.\n\n이유: "+(err.message||"JSON 형식 오류")+"\n\n확인해주세요:\n- .json 백업 파일인지\n- ZIP 파일을 선택한 것은 아닌지\n- 다른 앱의 파일은 아닌지");
+      if(el.restoreInput)el.restoreInput.value="";
+      return;
+    }
+
+    try{
+      if(Array.isArray(d.verses) && d.verses.length)set(K.verses,d.verses);
+      if(isPlainObjectForRestore(d.memory))set(K.memory,d.memory);
+      if(Array.isArray(d.records))set(K.records,d.records);
+      if(Array.isArray(d.prayers))set(K.prayers,d.prayers);
+      if(isPlainObjectForRestore(d.settings))set(K.settings,mergeSettingsForRestore(d.settings));
+
+      setBackupMeta({lastRestoreAt:Date.now(),lastRestoreFileName:file.name||"backup.json"});
+    }catch(err){
+      alert("백업 데이터를 저장하는 중 오류가 발생했습니다.\n\n오류: "+(err.message||err));
+      if(el.restoreInput)el.restoreInput.value="";
+      return;
+    }
+
+    try{
+      renderAll();
+      alert("백업을 불러왔습니다.\n\n파일명: "+(file.name||"backup.json"));
+    }catch(err){
+      console.error("restore render error",err);
+      alert("백업 데이터는 불러왔지만 화면 갱신 중 오류가 발생했습니다.\n앱을 새로고침하면 복원된 데이터가 표시될 수 있습니다.\n\n오류: "+(err.message||err));
     }finally{
       if(el.restoreInput)el.restoreInput.value="";
     }
   };
+
   r.onerror=()=>{
     alert("파일을 여는 중 오류가 발생했습니다.");
     if(el.restoreInput)el.restoreInput.value="";
   };
+
   r.readAsText(file);
 }
 
