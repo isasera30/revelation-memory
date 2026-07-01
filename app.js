@@ -1660,9 +1660,10 @@ function renderDeepStats(){
   const totalTime=rs.reduce((s,r)=>s+(Number(r.duration)||0),0);
   const totalTests=rs.length;
   const solved=rs.reduce((s,r)=>s+recordQuestionCount(r),0);
-  const correct=rs.reduce((s,r)=>s+(Number(r.correct)||0),0);
+  const correctTotal=rs.reduce((s,r)=>s+(Number(r.correct)||0),0);
   const mastered=all.filter(v=>(m[key(v)]?.streak||0)>=3 || m[key(v)]?.manualMemorized).length;
   const st=calcStreaks();
+  const accuracyRatio=solved ? correctTotal/solved : 0;
   el.deepStats.innerHTML=card([
     ["누적 공부일",st.totalDays+"일"],
     ["현재 연속",st.current+"일"],
@@ -1680,11 +1681,10 @@ function renderDeepStats(){
     ["🔥 7일 연속 학습", st.best>=7],
     ["🏆 30일 연속 학습", st.best>=30],
     ["⏰ 10시간 공부", totalTime>=36000],
-    ["🎯 정답률 90% 달성", solved>=20 && (correct/Math.max(1,solved))>=0.9]
+    ["🎯 정답률 90% 달성", solved>=20 && accuracyRatio>=0.9]
   ];
   el.achievements.innerHTML=achievements.map(([name,done])=>`<div class="item achievement ${done?"":"locked"}"><b>${name}</b><span>${done?"달성":"미달성"}</span></div>`).join("");
 }
-
 
 function jumpToReadingChapter(ch){
   setReadingCollapsed(false);
@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.5-restore-correct-guard";
+const APP_VERSION="5.6-restore-no-render";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2436,21 +2436,12 @@ function restore(file){
       if(isPlainObjectForRestore(d.settings))set(K.settings,mergeSettingsForRestore(d.settings));
 
       setBackupMeta({lastRestoreAt:Date.now(),lastRestoreFileName:file.name||"backup.json"});
+      if(el.restoreInput)el.restoreInput.value="";
+
+      alert("백업을 불러왔습니다.\n\n파일명: "+(file.name||"backup.json")+"\n\n복원 데이터를 안정적으로 반영하기 위해 자동 새로고침합니다.");
+      setTimeout(()=>location.reload(),300);
     }catch(err){
       alert("백업 데이터를 저장하는 중 오류가 발생했습니다.\n\n오류: "+(err.message||err));
-      if(el.restoreInput)el.restoreInput.value="";
-      return;
-    }
-
-    try{
-      renderAll();
-      alert("백업을 불러왔습니다.\n\n파일명: "+(file.name||"backup.json")+"\n\n화면을 새로고침해 복원 데이터를 안정적으로 반영합니다.");
-      setTimeout(()=>location.reload(),300);
-    }catch(err){
-      console.error("restore render error",err);
-      alert("백업 데이터는 불러왔지만 화면 갱신 중 오류가 발생했습니다.\n앱을 새로고침해 복원 데이터를 다시 표시합니다.\n\n오류: "+(err.message||err));
-      setTimeout(()=>location.reload(),300);
-    }finally{
       if(el.restoreInput)el.restoreInput.value="";
     }
   };

@@ -96,3 +96,8 @@ Version 5.5
 - 구버전 백업 복원 후 Safari에서 correct 변수 오류가 반복되는 문제 방어
 - 복원 성공 후 자동 새로고침으로 데이터 안정 반영
 - legacy runtime 참조 보호용 전역 guard 추가
+
+Version 5.6
+- 백업 불러오기 후 즉시 화면 갱신(renderAll) 제거
+- 복원 데이터 저장 후 자동 새로고침으로 안정 반영
+- 통계 렌더링에서 correct 변수명 충돌 가능성 제거
