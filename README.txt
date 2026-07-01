@@ -91,3 +91,8 @@ Version 5.4
 - 백업 복원 후 화면 갱신 중 'Can't find variable: correct' 오류 수정
 - 통계/성취 계산에서 정답 수를 안전하게 계산
 - 구버전 백업 복원 호환 유지
+
+Version 5.5
+- 구버전 백업 복원 후 Safari에서 correct 변수 오류가 반복되는 문제 방어
+- 복원 성공 후 자동 새로고침으로 데이터 안정 반영
+- legacy runtime 참조 보호용 전역 guard 추가

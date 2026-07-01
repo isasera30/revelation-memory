@@ -1,4 +1,8 @@
 const $=id=>document.getElementById(id);
+
+/* v5.5 legacy restore guard */
+window.correct=window.correct||0;
+window.wrong=window.wrong||0;
 const K={verses:"gm10_verses",memory:"gm10_memory",records:"gm10_records",prayers:"gm10_prayers",settings:"gm10_settings"};
 const EXPECTED={1:20,2:29,3:22,4:11,5:14,6:17,7:17,8:13,9:21,10:11,11:19,12:17,13:18,14:20,15:8,16:21,17:18,18:24,19:21,20:15,21:27,22:21};
 const TOTAL=404;
@@ -1676,7 +1680,7 @@ function renderDeepStats(){
     ["🔥 7일 연속 학습", st.best>=7],
     ["🏆 30일 연속 학습", st.best>=30],
     ["⏰ 10시간 공부", totalTime>=36000],
-    ["🎯 정답률 90% 달성", solved>=20 && correct/solved>=0.9]
+    ["🎯 정답률 90% 달성", solved>=20 && (correct/Math.max(1,solved))>=0.9]
   ];
   el.achievements.innerHTML=achievements.map(([name,done])=>`<div class="item achievement ${done?"":"locked"}"><b>${name}</b><span>${done?"달성":"미달성"}</span></div>`).join("");
 }
@@ -2296,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.4-restore-render-fix";
+const APP_VERSION="5.5-restore-correct-guard";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2440,10 +2444,12 @@ function restore(file){
 
     try{
       renderAll();
-      alert("백업을 불러왔습니다.\n\n파일명: "+(file.name||"backup.json"));
+      alert("백업을 불러왔습니다.\n\n파일명: "+(file.name||"backup.json")+"\n\n화면을 새로고침해 복원 데이터를 안정적으로 반영합니다.");
+      setTimeout(()=>location.reload(),300);
     }catch(err){
       console.error("restore render error",err);
-      alert("백업 데이터는 불러왔지만 화면 갱신 중 오류가 발생했습니다.\n앱을 새로고침하면 복원된 데이터가 표시될 수 있습니다.\n\n오류: "+(err.message||err));
+      alert("백업 데이터는 불러왔지만 화면 갱신 중 오류가 발생했습니다.\n앱을 새로고침해 복원 데이터를 다시 표시합니다.\n\n오류: "+(err.message||err));
+      setTimeout(()=>location.reload(),300);
     }finally{
       if(el.restoreInput)el.restoreInput.value="";
     }
