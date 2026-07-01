@@ -1034,3 +1034,267 @@ button{
 .backupStatusBox.danger{
   background:rgba(191,84,64,.10);
 }
+
+
+/* v5.1 Mobile layout fixes */
+@media(max-width:760px){
+  .sectionTitle{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:14px !important;
+  }
+  .sectionTitle > div{
+    width:100% !important;
+  }
+  .sectionTitle button,
+  .sectionTitle .secondary,
+  .sectionTitle .ghost{
+    width:100% !important;
+    margin:0 !important;
+  }
+
+  /* Prevent toggle buttons from visually touching/overlapping summary cards */
+  .panel > .sectionTitle + *,
+  .panel > h2 + *,
+  .panel > button + *,
+  .panel > .toggleBtn + *{
+    margin-top:16px !important;
+  }
+
+  /* Common collapse buttons should sit as their own row on mobile */
+  button[id^="toggle"],
+  #toggleMemoryStatusBtn,
+  #toggleStudyRecordBtn,
+  #toggleLearningRecordBtn,
+  #toggleCalendarBtn{
+    display:block;
+    width:100% !important;
+    margin:14px 0 16px 0 !important;
+  }
+
+  /* Settings reset title: avoid 초/기화 line break */
+  .settingsResetHeader{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:12px !important;
+  }
+  .settingsResetTitle{
+    width:100% !important;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+    text-align:left !important;
+    min-width:max-content !important;
+  }
+  #toggleSettingsResetBtn{
+    width:100% !important;
+    margin:0 !important;
+  }
+
+  /* Calendar mobile: month centered, streaks together on one row */
+  .calendarTitleRow{
+    display:block !important;
+  }
+  .calendarTitleRow h2{
+    text-align:left !important;
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+  }
+  .calendarMonthNavWithStreak{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-areas:
+      "month month"
+      "current best" !important;
+    justify-items:center !important;
+    align-items:center !important;
+    gap:10px 12px !important;
+    margin:12px auto 22px auto !important;
+  }
+  .calendarMonthCenter{
+    grid-area:month !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+  #currentStreakLabel{
+    grid-area:current !important;
+    justify-self:end !important;
+    text-align:right !important;
+  }
+  #bestStreakLabel{
+    grid-area:best !important;
+    justify-self:start !important;
+    text-align:left !important;
+  }
+  .calendarStreakPill{
+    white-space:nowrap !important;
+    font-size:13px !important;
+  }
+
+  /* Ensure statistic cards do not slide under toggle buttons */
+  .statsGrid,
+  .memorySummaryGrid,
+  .achievementGrid,
+  .recordGrid{
+    margin-top:14px !important;
+  }
+}
+
+/* extra compact phones */
+@media(max-width:430px){
+  .calendar{
+    gap:6px !important;
+  }
+  .calendar .day{
+    min-height:64px !important;
+    padding:8px 6px !important;
+  }
+}
+
+
+/* v5.2 Mobile UI polish */
+.smallBtns{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:10px !important;
+  align-items:center !important;
+}
+.smallBtns button{
+  min-width:96px;
+}
+.bookmarkItem .smallBtns,
+.favItem .smallBtns{
+  flex-direction:row !important;
+}
+.bookmarkItem .smallBtns button,
+.favItem .smallBtns button{
+  flex:0 0 auto !important;
+}
+
+.readingTimerActions{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:12px !important;
+}
+.readingTimerActions button{
+  flex:1 1 180px !important;
+}
+
+.collapseHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.collapseHead b{
+  word-break:keep-all;
+}
+.feedbackCollapseHead{
+  align-items:flex-start !important;
+}
+.feedbackCollapseHead b{
+  white-space:nowrap !important;
+  word-break:keep-all !important;
+  line-height:1.35 !important;
+}
+
+@media(max-width:760px){
+  /* Override broad v5.1 mobile sectionTitle button full-width for wrong/review action groups */
+  #wrongNotePanel .sectionTitle,
+  #todayReviewPanel .sectionTitle{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+  }
+  #wrongNotePanel .compactActions,
+  #todayReviewPanel .compactActions{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:wrap !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top:10px !important;
+  }
+  #wrongNotePanel .compactActions button,
+  #todayReviewPanel .compactActions button{
+    width:auto !important;
+    flex:1 1 46% !important;
+    margin:0 !important;
+  }
+
+  /* Reading buttons side-by-side when there is room */
+  .readingTimerActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:12px !important;
+    width:100% !important;
+  }
+  .readingTimerActions button{
+    width:100% !important;
+    min-width:0 !important;
+    flex:auto !important;
+    margin:0 !important;
+  }
+  .readingTimerActions #pauseReadingBtn:not(.hidden){
+    grid-column:1 / -1;
+  }
+
+  /* Bookmark/Favorite open + delete side by side */
+  .bookmarkItem .smallBtns,
+  .favItem .smallBtns{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top:12px !important;
+  }
+  .bookmarkItem .smallBtns button,
+  .favItem .smallBtns button{
+    flex:1 1 0 !important;
+    min-width:0 !important;
+    width:auto !important;
+    margin:0 !important;
+  }
+
+  /* Feedback: keep title one line; move collapse button below the message */
+  .feedbackCollapseHead{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:12px !important;
+  }
+  .feedbackCollapseHead b{
+    white-space:nowrap !important;
+    word-break:keep-all !important;
+    overflow-wrap:normal !important;
+    font-size:1em !important;
+  }
+  .feedbackCollapseHead .miniCollapseBtn{
+    width:100% !important;
+    margin:0 !important;
+    order:2;
+  }
+  .collapseBody{
+    margin-top:6px !important;
+  }
+}
+
+@media(max-width:390px){
+  .readingTimerActions{
+    grid-template-columns:1fr !important;
+  }
+  #wrongNotePanel .compactActions,
+  #todayReviewPanel .compactActions{
+    flex-direction:column !important;
+  }
+  #wrongNotePanel .compactActions button,
+  #todayReviewPanel .compactActions button{
+    flex:1 1 auto !important;
+    width:100% !important;
+  }
+}

@@ -984,7 +984,7 @@ function endExamNow(){
 
 function renderCollapsibleBox(box, kind, title, bodyHTML, collapsed){
   const icon = collapsed ? "▼ 펼치기" : "▲ 접기";
-  box.innerHTML = `<div class="collapseHead"><b>${title}</b><button type="button" class="ghost miniCollapseBtn" data-collapse="${kind}">${icon}</button></div>${collapsed ? "" : `<div class="collapseBody">${bodyHTML}</div>`}`;
+  box.innerHTML = `<div class="collapseHead ${kind==="feedback"?"feedbackCollapseHead":""}"><b>${title}</b><button type="button" class="ghost miniCollapseBtn" data-collapse="${kind}">${icon}</button></div>${collapsed ? "" : `<div class="collapseBody">${bodyHTML}</div>`}`;
   box.classList.remove("hidden");
   setTimeout(()=>{
     const btn=box.querySelector(".miniCollapseBtn");
@@ -2295,7 +2295,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.0-backup-status";
+const APP_VERSION="5.2-mobile-ui-polish";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2375,10 +2375,21 @@ function backup(){
   alert(`✅ 백업 파일을 만들었습니다.\n\n파일명: ${filename}\n\n파일 앱/iCloud/Google Drive 등에 보관해두면 새 기기에서도 복원할 수 있습니다.`);
 }
 function restore(file){
+  if(!file){
+    alert("백업 파일을 선택하지 않았습니다.");
+    return;
+  }
   const r=new FileReader();
   r.onload=()=>{
     try{
-      const d=JSON.parse(r.result);
+      const d=JSON.parse(String(r.result||""));
+      if(!d || typeof d!=="object"){
+        throw new Error("백업 데이터 형식이 아닙니다.");
+      }
+      const hasKnownData = d.verses || d.memory || d.records || d.prayers || d.settings;
+      if(!hasKnownData){
+        throw new Error("계시록 암기 백업 파일이 아닙니다.");
+      }
       if(d.verses)set(K.verses,d.verses);
       if(d.memory)set(K.memory,d.memory);
       if(d.records)set(K.records,d.records);
@@ -2387,9 +2398,15 @@ function restore(file){
       setBackupMeta({lastRestoreAt:Date.now(),lastRestoreFileName:file.name||"backup.json"});
       renderAll();
       alert("백업을 불러왔습니다.");
-    }catch{
-      alert("백업 파일을 읽지 못했습니다.");
+    }catch(err){
+      alert("백업 파일을 읽지 못했습니다.\n\n확인해주세요:\n- .json 백업 파일인지\n- ZIP 파일을 선택한 것은 아닌지\n- 다른 앱의 파일은 아닌지");
+    }finally{
+      if(el.restoreInput)el.restoreInput.value="";
     }
+  };
+  r.onerror=()=>{
+    alert("파일을 여는 중 오류가 발생했습니다.");
+    if(el.restoreInput)el.restoreInput.value="";
   };
   r.readAsText(file);
 }
