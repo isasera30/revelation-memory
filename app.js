@@ -1653,10 +1653,11 @@ function calcStreaks(){
 function renderDeepStats(){
   if(!el.deepStats)return;
   const rs=records(), all=verses(), m=mem();
-  const totalTime=rs.reduce((s,r)=>s+r.duration,0);
+  const totalTime=rs.reduce((s,r)=>s+(Number(r.duration)||0),0);
   const totalTests=rs.length;
-  const solved=rs.reduce((s,r)=>s+r.count,0);
-  const mastered=all.filter(v=>(m[key(v)]?.streak||0)>=3).length;
+  const solved=rs.reduce((s,r)=>s+recordQuestionCount(r),0);
+  const correct=rs.reduce((s,r)=>s+(Number(r.correct)||0),0);
+  const mastered=all.filter(v=>(m[key(v)]?.streak||0)>=3 || m[key(v)]?.manualMemorized).length;
   const st=calcStreaks();
   el.deepStats.innerHTML=card([
     ["누적 공부일",st.totalDays+"일"],
@@ -2295,7 +2296,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.3-restore-fix";
+const APP_VERSION="5.4-restore-render-fix";
 
 function formatDateTime(ts){
   if(!ts)return "";
