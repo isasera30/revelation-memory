@@ -12,6 +12,92 @@
   <link rel="apple-touch-icon" href="icon-192.png" />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="style.css" />
+
+<style id="mobile-reset-final-fix">
+/* v5.20 final - 모바일 설정 초기화 영역만 보정 */
+@media (max-width: 760px){
+  #settingsPanel .settingsGridAligned .settingsResetCardInline{
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: block !important;
+    margin: 18px 0 0 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: transparent !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline .settingsResetHeader{
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    margin: 0 0 14px 0 !important;
+    padding: 0 !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline .settingsResetTitle{
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    line-height: 1.2 !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline #toggleSettingsResetBtn{
+    width: auto !important;
+    min-width: 88px !important;
+    max-width: 128px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    line-height: 38px !important;
+    padding: 0 14px !important;
+    margin: 0 auto !important;
+    font-size: 14px !important;
+    flex: 0 0 auto !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline #settingsResetContent.resetButtonsGrid{
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    margin: 14px 0 0 0 !important;
+    padding: 0 !important;
+    clear: both !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline #settingsResetContent.resetButtonsGrid.hidden{
+    display: none !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline #settingsResetContent.resetButtonsGrid > button{
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 6px !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    border-radius: 999px !important;
+  }
+
+  #settingsPanel .settingsGridAligned .settingsResetCardInline #settingsResetContent.resetButtonsGrid .resetAllStudyBtn{
+    grid-column: auto !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="app">
