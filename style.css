@@ -1539,3 +1539,143 @@ button{
     margin:0 !important;
   }
 }
+
+
+/* v5.14 settings alignment only: compact equal rows */
+.settingsGridAligned{
+  align-items:start;
+  row-gap:16px !important;
+  column-gap:18px !important;
+}
+.settingsGridAligned > button,
+.settingsGridAligned > label.fileBtn,
+.settingsGridAligned .settingsResetCardInline{
+  min-height:56px !important;
+  height:56px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+}
+.settingsGridAligned .backupStatusBox:empty{
+  display:none !important;
+}
+.settingsResetCardInline{
+  padding:0 !important;
+  border:0 !important;
+  background:transparent !important;
+}
+.settingsResetCardInline .settingsResetHeader{
+  width:100% !important;
+  min-height:56px !important;
+  height:56px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:14px !important;
+  box-sizing:border-box !important;
+}
+.settingsResetCardInline .settingsResetTitle{
+  font-size:17px !important;
+  font-weight:900 !important;
+  line-height:1 !important;
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+.settingsResetCardInline #toggleSettingsResetBtn{
+  width:auto !important;
+  min-width:92px !important;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 16px !important;
+  font-size:14px !important;
+  line-height:42px !important;
+  border-radius:999px !important;
+  flex:0 0 auto !important;
+}
+.settingsResetCardInline #settingsResetContent{
+  margin-top:12px !important;
+  width:100% !important;
+}
+.settingsGridAligned .aboutAppAligned{
+  grid-column:1 / 2;
+}
+@media(max-width:760px){
+  .settingsGridAligned{
+    row-gap:12px !important;
+    column-gap:0 !important;
+  }
+  .settingsGridAligned > button,
+  .settingsGridAligned > label.fileBtn,
+  .settingsGridAligned .settingsResetCardInline{
+    min-height:52px !important;
+    height:52px !important;
+  }
+  .settingsResetCardInline .settingsResetHeader{
+    min-height:52px !important;
+    height:52px !important;
+  }
+  .settingsGridAligned .aboutAppAligned{
+    grid-column:auto;
+  }
+}
+
+
+/* --- Settings reset spacing fix --- */
+.settingsResetContent{
+  margin-top:18px !important;
+}
+
+/* Keep reset buttons on one line where possible */
+.resetButtonsGrid{
+  row-gap:12px !important;
+  column-gap:12px !important;
+}
+.resetButtonsGrid button{
+  white-space:nowrap !important;
+}
+#resetStudyDataBtn{
+  min-width:240px !important;
+}
+
+
+/* v5.14 minor polish */
+.settingsResetContent{
+  margin-top:28px !important; /* was tighter */
+}
+
+#toggleSettingsResetBtn{
+  height:38px !important;
+  min-height:38px !important;
+  line-height:38px !important;
+  min-width:88px !important;
+  padding:0 14px !important;
+  font-size:14px !important;
+  border-radius:999px !important;
+}
+
+
+/* v5.16 actual: 지정 섹션 본문 텍스트만 15px */
+#readingPanel .verseRead,
+#todayReviewList .item,
+#favoriteList .favItem,
+#confuseList .favItem,
+.wrongPriorityItem,
+.bulkWrong{
+  font-size:15px !important;
+}
+
+/* 절 번호/버튼/배지/메모 안내는 기존 크기 유지에 가깝게 */
+#readingPanel .verseRead b,
+#todayReviewList .item b,
+#favoriteList .favItem b,
+#confuseList .favItem b,
+.wrongPriorityItem b{
+  font-size:inherit !important;
+}
+
+#readingPanel .verseRead .smallBtns,
+#favoriteList .smallBtns,
+#confuseList .smallBtns{
+  font-size:initial !important;
+}

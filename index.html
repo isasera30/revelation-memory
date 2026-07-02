@@ -31,12 +31,14 @@
       </div>
       <button id="closeSettingsBtn" class="ghost">닫기</button>
     </div>
-    <div class="settingsGrid">
+    <div class="settingsGrid settingsGridAligned">
       <button id="backupBtn" class="secondary">☁️ 백업 저장</button>
       <label class="secondary fileBtn">☁️ 백업 불러오기<input id="restoreInput" type="file" accept="application/json" /></label>
       <div id="backupStatusBox" class="backupStatusBox"></div>
       <button id="openImportFromSettingsBtn" class="secondary">📂 본문 등록 관리</button>
-      <div class="settingsResetCard">
+      <button id="darkModeBtn" class="secondary">🌙 다크모드</button>
+      <button id="installHelpBtn" class="secondary">📱 앱 설치 안내</button>
+      <div class="settingsResetCard settingsResetCardInline">
         <div class="settingsResetHeader">
           <div class="settingsResetTitle">🗑 초기화</div>
           <button id="toggleSettingsResetBtn" type="button" class="secondary">▼ 펼치기</button>
@@ -48,9 +50,7 @@
           <button id="resetStudyDataBtn" class="ghost danger resetAllStudyBtn">공부 데이터 전체 초기화</button>
         </div>
       </div>
-      <button id="darkModeBtn" class="secondary">🌙 다크모드</button>
-      <button id="installHelpBtn" class="secondary">📱 앱 설치 안내</button>
-      <button id="aboutAppBtn" class="secondary">ℹ️ 앱 정보</button>
+      <button id="aboutAppBtn" class="secondary aboutAppAligned">ℹ️ 앱 정보</button>
     </div>
     <p id="installHelpText" class="note hidden">모바일 브라우저에서 공유 버튼 또는 메뉴를 누른 뒤 ‘홈 화면에 추가’를 선택하면 앱처럼 사용할 수 있습니다.</p>
     <div id="aboutAppBox" class="aboutAppBox hidden"></div>
