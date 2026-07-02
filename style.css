@@ -2167,3 +2167,70 @@ html body #prayerSearchInput.searchInput::placeholder{
     width:100% !important;
   }
 }
+
+
+/* v5.31 - 시험 결과 버튼 표시 복구 및 크기 통일 */
+#resultPanel .resultActionRow{
+  display:flex !important;
+  gap:10px !important;
+  flex-wrap:wrap !important;
+  margin-top:12px !important;
+}
+
+#resultPanel .resultActionRow.hidden{
+  display:none !important;
+}
+
+#resultPanel .resultActionRow .examResultBtn,
+#resultPanel .resultActionRow button{
+  min-height:42px !important;
+  height:42px !important;
+  padding:0 14px !important;
+  font-size:14px !important;
+  line-height:1.2 !important;
+}
+
+@media(max-width:760px){
+  #resultPanel .resultActionRow{
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+
+  #resultPanel .resultActionRow .examResultBtn,
+  #resultPanel .resultActionRow button{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    height:44px !important;
+    padding:0 8px !important;
+    font-size:14px !important;
+    white-space:nowrap !important;
+  }
+}
+
+
+/* v5.32 - 빈칸 입력 안내/힌트 보강 */
+#examPanel #hintBox{
+  white-space:pre-wrap;
+}
+
+
+/* v5.33 - 단계형 힌트 표시 */
+#examPanel #hintBox{
+  white-space:pre-wrap;
+}
+
+
+/* v5.34 - 시험 결과 묵상 버튼 위 간격만 조정 */
+#resultPanel > .actions:not(.resultActionRow){
+  margin-top:14px !important;
+}
+
+
+/* v5.35 - 전체 한번에 작성 빈칸/힌트 연결 보정 */
+.bulkQuestionItem .bulkHint{
+  margin:10px 0 10px 0;
+  white-space:pre-wrap;
+}
