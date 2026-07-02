@@ -1454,7 +1454,7 @@ function renderReading(){
     return `<div class="verseRead" id="versebox-${v.chapter}-${v.verse}" onclick="saveLastRead(${v.chapter},${v.verse})">
       <b>${v.chapter}:${v.verse}</b>
       <span class="verseText ${hide?"hiddenText":""}" id="read-${v.chapter}-${v.verse}">${esc(v.text)}</span>
-      <div class="smallBtns verseReadActions">
+      <div class="smallBtns verseReadActions prayerActionBtns">
         <button class="secondary" onclick="event.stopPropagation();toggleReadText('${v.chapter}-${v.verse}')">보기/가리기</button>
         <button class="secondary" onclick="event.stopPropagation();markReadFavorite('${kq}')">${r.fav?"⭐ 해제":"⭐ 저장"}</button>
         <button class="secondary" onclick="event.stopPropagation();markReadConfuse('${kq}')">📝 헷갈림</button>
@@ -1566,7 +1566,7 @@ function renderBookmarks(){
   const s=settings();
   const list=s.bookmarks||[];
   el.bookmarkList.innerHTML=list.length
-    ? `<h3 class="subTitle">📌 저장한 책갈피</h3>` + list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
+    ? `<h3 class="subTitle">📌 저장한 책갈피</h3>` + list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions prayerActionBtns"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
     : "";
 }
 
@@ -1808,7 +1808,7 @@ function renderLists(){
     el.favoriteList.innerHTML=fav.map(v=>`
       <div class="item favItem">
         <div class="favText"><b>계${v.chapter}:${v.verse}</b> ${esc(shortVerseText(v.text))}</div>
-        <div class="smallBtns verseReadActions">
+        <div class="smallBtns verseReadActions prayerActionBtns">
           <button class="secondary" onclick="openVerseFromList(${v.chapter},${v.verse})">열기</button>
           <button class="ghost danger" onclick="deleteFavoriteVerse(${v.chapter},${v.verse})">삭제</button>
         </div>
@@ -1824,7 +1824,7 @@ function renderLists(){
           <b>계${v.chapter}:${v.verse}</b> ${esc(shortVerseText(v.text))}
           ${m[kq]?.confuseMemo?`<div class="note">메모: ${esc(m[kq].confuseMemo)}</div>`:""}
         </div>
-        <div class="smallBtns verseReadActions">
+        <div class="smallBtns verseReadActions prayerActionBtns">
           <button class="secondary" onclick="openVerseFromList(${v.chapter},${v.verse})">열기</button>
           <button class="secondary" onclick="resolveConfuse('${kq}')">해결</button>
           <button class="ghost danger" onclick="deleteConfuseVerse('${kq}')">삭제</button>
@@ -1936,11 +1936,11 @@ function renderPrayer(){
         </div>
       </div>
       ${p.text?`<div class="prayerTextView">${esc(p.text)}</div>`:""}
-      <div class="smallBtns verseReadActions">
-        <button class="secondary" onclick="editPrayer(${p.id})">✏️ 수정</button>
-        <button class="secondary" onclick="togglePrayerAnswered(${p.id})">${p.status==="응답/완료"?"↩️ 진행중":"✅ 응답 완료"}</button>
+      <div class="smallBtns verseReadActions prayerActionBtns">
+        <button class="secondary prayerEditBtn" onclick="editPrayer(${p.id})">✏️ 수정</button>
+        <button class="secondary prayerDoneBtn" onclick="togglePrayerAnswered(${p.id})">${p.status==="응답/완료"?"↩️ 진행중":"✅ 응답 완료"}</button>
         <button class="secondary" onclick="togglePrayerPin(${p.id})">${p.pinned?"📌 고정 해제":"📌 고정"}</button>
-        <button class="ghost danger" onclick="deletePrayer(${p.id})">🗑 삭제</button>
+        <button class="ghost danger prayerDeleteBtn" onclick="deletePrayer(${p.id})">🗑 삭제</button>
       </div>
     </div>
   `).join("") || "<p class='note'>저장한 기도 제목이나 묵상이 없습니다.</p>";
@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.27-prayer-textarea-placeholder-actual";
+const APP_VERSION="5.28-prayer-controls-actual";
 
 function formatDateTime(ts){
   if(!ts)return "";

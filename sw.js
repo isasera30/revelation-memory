@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-27-prayer-textarea-placeholder-actual";
+const CACHE="gyesirok-memory-v5-28-prayer-controls-actual";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {

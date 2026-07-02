@@ -1990,3 +1990,42 @@ html body textarea#prayerText::placeholder{
   line-height:1.45 !important;
   font-weight:400 !important;
 }
+
+
+/* v5.28 - 기도 제목 입력/검색 예시 글자 크기 실제 적용 */
+html body #prayerTitleInput.searchInput,
+html body #prayerSearchInput.searchInput{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  padding:12px 14px !important;
+  font-weight:400 !important;
+}
+
+html body #prayerTitleInput.searchInput::placeholder,
+html body #prayerSearchInput.searchInput::placeholder{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+}
+
+/* v5.28 - 모바일 기도 제목 저장 카드 버튼 비율 실제 적용 */
+@media(max-width:520px){
+  #prayerList .prayerItem .prayerActionBtns{
+    display:grid !important;
+    grid-template-columns:0.86fr 1.34fr 0.9fr 0.86fr !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+
+  #prayerList .prayerItem .prayerActionBtns button{
+    width:100% !important;
+    min-width:0 !important;
+    padding-left:3px !important;
+    padding-right:3px !important;
+    white-space:nowrap !important;
+  }
+
+  #prayerList .prayerItem .prayerDoneBtn{
+    font-size:12px !important;
+  }
+}
