@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#2f6f5e" />
-  <title>계시록 암기 v5.13 PC Buttons Layout</title>
+  <title>공부한다며? 1분만 하자 🙂</title>
 
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="계시록 암기" />
@@ -140,7 +140,7 @@
         </div>
         <div id="settingsResetContent" class="settingsResetGroup resetButtonsGrid hidden">
           <button id="resetRecordsOnlyBtn" class="ghost danger">학습기록 초기화</button>
-          <button id="resetMemoryDataBtn" class="ghost danger">암기현황 초기화</button>
+          <button id="resetMemoryDataBtn" class="ghost danger">오늘의 복습 초기화</button>
           <button id="resetWrongNoteDataBtn" class="ghost danger">오답노트 초기화</button>
           <button id="resetStudyDataBtn" class="ghost danger resetAllStudyBtn">공부 데이터 전체 초기화</button>
         </div>
@@ -236,6 +236,7 @@
       <div class="actions compactActions">
         <button id="toggleTodayReviewBtn" type="button" class="secondary">▲ 접기</button>
         <button id="startReviewBtn" class="primary">복습 시작</button>
+        <button id="randomReviewBtn" class="secondary">랜덤 복습</button>
       </div>
     </div>
     <div id="todayReviewContent">
@@ -414,12 +415,18 @@
   </section>
 
   <section class="panel">
-    <h2>⭐ 즐겨찾기 절</h2>
+    <div class="quickExamHeader">
+      <h2>⭐ 즐겨찾기 절</h2>
+      <button id="startFavoriteOnlyBtn" class="primary">즐겨찾기만 시험</button>
+    </div>
     <div id="favoriteList" class="list"></div>
   </section>
 
   <section class="panel">
-    <h2>📝 헷갈림 노트</h2>
+    <div class="quickExamHeader">
+      <h2>📝 헷갈림 노트</h2>
+      <button id="startConfuseOnlyBtn" class="primary">헷갈림만 시험</button>
+    </div>
     <div id="confuseList" class="list"></div>
   </section>
 

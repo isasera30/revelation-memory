@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-42-auto-hints-all-modes-alert";
+const CACHE="gyesirok-memory-v5-53-stable";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {

@@ -1,6 +1,5 @@
 const $=id=>document.getElementById(id);
 
-/* v5.5 legacy restore guard */
 window.correct=window.correct||0;
 window.wrong=window.wrong||0;
 const K={verses:"gm10_verses",memory:"gm10_memory",records:"gm10_records",prayers:"gm10_prayers",settings:"gm10_settings"};
@@ -471,7 +470,7 @@ function checkAnswerForMode(q,user){
 
 function isWrongForNote(v){
   const r=mem()[key(v)]||{};
-  return !!r.wrongNoteActive || ((r.wrongNoteWrong||0)>0) || ((r.wrong||0)>0 && !r.wrongNoteResolvedAt);
+  return !!r.wrongNoteActive || ((r.wrongNoteWrong||0)>0);
 }
 
 function noteReason(v){
@@ -510,7 +509,7 @@ function wrongNoteVerses(includeResolved=false){
     });
 }
 
-function getSmartReviewVerses(base=null){
+function computeSmartReviewVerses(base=null){
   const all=(base||verses()).slice();
   const m=mem();
   const wrong=all.filter(v=>isWrongForNote(v));
@@ -532,6 +531,26 @@ function getSmartReviewVerses(base=null){
     return priority(ra)-priority(rb) || verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse);
   });
 }
+function getSmartReviewVerses(base=null){
+  if(base)return computeSmartReviewVerses(base);
+
+  const s=settings();
+  const today=dateISO();
+  if(s.todayReviewClearedDate===today)return [];
+
+  if(s.todayReviewCacheDate===today && Array.isArray(s.todayReviewCacheKeys)){
+    return s.todayReviewCacheKeys
+      .map(k=>verseFromKey(k))
+      .filter(Boolean)
+      .sort((a,b)=>verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse));
+  }
+
+  const computed=computeSmartReviewVerses();
+  s.todayReviewCacheDate=today;
+  s.todayReviewCacheKeys=computed.map(key);
+  setSettings(s);
+  return computed;
+}
 
 function startQuestionSet(qs, label="복습"){
   if(!qs.length){alert("출제할 구절이 없습니다.");return;}
@@ -551,6 +570,20 @@ function startWrongNoteExam(){
 
 function startSmartReviewExam(){
   startQuestionSet(getSmartReviewVerses().slice(0,20),"오늘 추천");
+}
+function startRandomReviewExam(){
+  const qs=shuffle(getSmartReviewVerses()).slice(0,20);
+  startQuestionSet(qs,"랜덤 복습");
+}
+function startFavoriteOnlyExam(){
+  const m=mem();
+  const qs=verses().filter(v=>m[key(v)]?.fav).sort((a,b)=>verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse));
+  startQuestionSet(qs,"즐겨찾기");
+}
+function startConfuseOnlyExam(){
+  const m=mem();
+  const qs=verses().filter(v=>m[key(v)]?.confuse && !m[key(v)]?.resolved).sort((a,b)=>verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse));
+  startQuestionSet(qs,"헷갈림");
 }
 
 
@@ -952,16 +985,21 @@ function pickQuestions(){
   const mode=el.modeSelect.value==="review"?"write":el.modeSelect.value;
   const allowRepeat=mode==="blank";
   const n=allowRepeat ? requested : Math.min(requested, pool.length);
+  const forceRandomRef=mode==="ref" && examOrderMode()==="sequence";
 
+  const messages=[];
+  if(forceRandomRef){
+    messages.push("구절 보고 장절 맞히기 모드는 순서대로 출제하면 정답을 예측할 수 있어 랜덤으로 진행됩니다.");
+  }
   if(!allowRepeat && requested>pool.length){
     const modeLabel=mode==="ref"?"장절 맞히기":"전체 구절 입력";
-    state.examAdjustedMessage=`선택한 범위의 구절은 ${pool.length}개입니다. ${modeLabel} 모드는 중복 출제 없이 ${pool.length}문제로 진행됩니다.`;
-  }else{
-    state.examAdjustedMessage="";
+    messages.push(`선택한 범위의 구절은 ${pool.length}개입니다. ${modeLabel} 모드는 중복 출제 없이 ${pool.length}문제로 진행됩니다.`);
   }
+  state.examAdjustedMessage=messages.join("\n\n");
 
   const out=[];
-  if(examOrderMode()==="random"){
+  const useRandom=examOrderMode()==="random" || forceRandomRef;
+  if(useRandom){
     const base=allowRepeat ? pool : shuffle(pool).slice(0,n);
     if(!allowRepeat)return base.map((v,i)=>cloneQuestion(v,i));
 
@@ -1865,17 +1903,21 @@ function calcStreaks(){
 function renderDeepStats(){
   if(!el.deepStats)return;
   const rs=records(), all=verses(), m=mem();
-  const totalTime=rs.reduce((s,r)=>s+(Number(r.duration)||0),0);
-  const totalTests=rs.length;
-  const solved=rs.reduce((s,r)=>s+recordQuestionCount(r),0);
-  const correctTotal=rs.reduce((s,r)=>s+(Number(r.correct)||0),0);
+  const preserved=(settings().preservedLearningStats)||{};
+  const cur=learningStatsFromRecords(rs);
+  const totalTime=(preserved.totalTime||0)+(cur.totalTime||0);
+  const totalTests=(preserved.totalTests||0)+(cur.totalTests||0);
+  const solved=(preserved.solved||0)+(cur.solved||0);
+  const correctTotal=(preserved.correctTotal||0)+(cur.correctTotal||0);
   const mastered=all.filter(v=>(m[key(v)]?.streak||0)>=3 || m[key(v)]?.manualMemorized).length;
   const st=calcStreaks();
+  const totalDays=(preserved.totalDays||0)+st.totalDays;
+  const bestStreak=Math.max(preserved.best||0,st.best||0);
   const accuracyRatio=solved ? correctTotal/solved : 0;
   el.deepStats.innerHTML=card([
-    ["누적 공부일",st.totalDays+"일"],
+    ["누적 공부일",totalDays+"일"],
     ["현재 연속",st.current+"일"],
-    ["최고 연속",st.best+"일"],
+    ["최고 연속",bestStreak+"일"],
     ["총 공부시간",fmt(totalTime)],
     ["총 시험",totalTests+"회"],
     ["푼 절 수",solved+"절"],
@@ -1886,8 +1928,8 @@ function renderDeepStats(){
     ["🥉 첫 시험 완료", totalTests>=1],
     ["🥈 100문제 풀이", solved>=100],
     ["🥇 1,000문제 풀이", solved>=1000],
-    ["🔥 7일 연속 학습", st.best>=7],
-    ["🏆 30일 연속 학습", st.best>=30],
+    ["🔥 7일 연속 학습", bestStreak>=7],
+    ["🏆 30일 연속 학습", bestStreak>=30],
     ["⏰ 10시간 공부", totalTime>=36000],
     ["🎯 정답률 90% 달성", solved>=20 && accuracyRatio>=0.9]
   ];
@@ -2435,41 +2477,110 @@ function applySettingsResetPanelCollapse(){
   if(btn)btn.textContent=collapsed?"▼ 펼치기":"▲ 접기";
 }
 
-function resetRecordsOnly(){
-  if(!confirm("학습기록과 공부 캘린더만 삭제할까요?\n\n암기현황, 오답노트, 오늘의 복습은 유지됩니다."))return;
-  set(K.records,[]);
-  renderAll();
-  alert("학습기록이 초기화되었습니다.");
-}
 
-function resetMemoryDataOnly(){
-  if(!confirm("암기현황을 초기화할까요?\n\n삭제됨:\n- 직접 체크한 암기현황\n- 전체 달성률\n- 오늘 암기한 구절\n\n학습기록, 오답노트, 오늘의 복습은 유지됩니다."))return;
+function learningStatsFromRecords(rs){
+  rs=rs||[];
+  const days=[...new Set(rs.map(r=>r.dateISO).filter(Boolean))].sort();
+  const totalTime=rs.reduce((s,r)=>s+(Number(r.duration)||0),0);
+  const totalTests=rs.length;
+  const solved=rs.reduce((s,r)=>s+recordQuestionCount(r),0);
+  const correctTotal=rs.reduce((s,r)=>s+(Number(r.correct)||0),0);
+  let best=0, run=0, prev=null;
+  for(const iso of days){
+    const dt=new Date(iso+"T00:00:00");
+    if(prev){
+      const gap=Math.round((dt-prev)/86400000);
+      run=gap===1?run+1:1;
+    }else run=1;
+    best=Math.max(best,run);
+    prev=dt;
+  }
+  return {totalDays:days.length,best,totalTime,totalTests,solved,correctTotal};
+}
+function addPreservedLearningStats(rs){
+  const s=settings();
+  const prev=s.preservedLearningStats||{totalDays:0,best:0,totalTime:0,totalTests:0,solved:0,correctTotal:0};
+  const cur=learningStatsFromRecords(rs||records());
+  s.preservedLearningStats={
+    totalDays:(prev.totalDays||0)+(cur.totalDays||0),
+    best:Math.max(prev.best||0,cur.best||0),
+    totalTime:(prev.totalTime||0)+(cur.totalTime||0),
+    totalTests:(prev.totalTests||0)+(cur.totalTests||0),
+    solved:(prev.solved||0)+(cur.solved||0),
+    correctTotal:(prev.correctTotal||0)+(cur.correctTotal||0)
+  };
+  setSettings(s);
+}
+function clearCalendarOnlyMemoryDates(){
   const m=mem();
   Object.keys(m).forEach(k=>{
     if(m[k]){
-      delete m[k].manualMemorized;
       delete m[k].manualMemorizedAt;
-      delete m[k].manualUnmemorized;
-      delete m[k].masteredAt;
-      delete m[k].masteredAtKOR;
+      delete m[k].manualUnmemorizedAt;
     }
   });
   setMem(m);
+  saveMemoryCheckHistory({});
+}
+
+function resetRecordsOnly(){
+  if(!confirm(`학습기록과 공부 캘린더를 초기화할까요?
+
+삭제됨:
+- 학습기록 목록
+- 공부 캘린더 표시 기록
+
+유지됨:
+- 나의 암기 기록 누적 통계
+- 직접 체크한 암기현황
+- 오답노트
+- 오늘의 복습
+- 책갈피`))return;
+  addPreservedLearningStats(records());
+  set(K.records,[]);
+  clearCalendarOnlyMemoryDates();
+  selectedCalendarISO=null;
+  renderAll();
+  alert("학습기록과 공부 캘린더가 초기화되었습니다.\n나의 암기 기록 누적 통계는 유지됩니다.");
+}
+
+function resetTodayReviewOnly(){
+  if(!confirm(`오늘의 복습 목록을 초기화할까요?
+
+오늘의 복습 추천 목록만 숨겨집니다.
+오답노트, 헷갈림, 즐겨찾기, 학습기록, 암기현황은 유지됩니다.`))return;
   const s=settings();
-  delete s.selectedMemoryChapter;
+  s.todayReviewClearedDate=dateISO();
+  delete s.todayReviewCacheDate;
+  delete s.todayReviewCacheKeys;
   setSettings(s);
   renderAll();
-  alert("암기현황이 초기화되었습니다.");
+  if(el.todayReviewList){
+    el.todayReviewList.innerHTML="<p class='note'>오늘의 복습이 초기화되었습니다. 내일 다시 자동 추천됩니다.</p>";
+  }
+  alert("오늘의 복습이 초기화되었습니다.\n내일 다시 자동 추천됩니다.");
 }
 
 
 
 function resetWrongNoteDataOnly(){
-  if(!confirm("오답노트를 초기화할까요?\n\n삭제됨:\n- 활성 오답\n- 해결된 오답\n- 오답 횟수\n\n학습기록과 암기현황은 유지됩니다."))return;
+  if(!confirm(`오답노트를 초기화할까요?
+
+삭제됨:
+- 활성 오답노트 표시
+- 해결된 오답노트 표시
+- 오답노트 전용 횟수
+
+유지됨:
+- 학습기록
+- 공부 캘린더
+- 암기현황
+- 오늘의 복습
+- 책갈피
+- 시험 정오답 누적 기록`))return;
   const m=mem();
   Object.keys(m).forEach(k=>{
     if(m[k]){
-      delete m[k].wrong;
       delete m[k].wrongNoteActive;
       delete m[k].wrongNoteWrong;
       delete m[k].wrongNoteStreak;
@@ -2483,19 +2594,40 @@ function resetWrongNoteDataOnly(){
 }
 
 function resetStudyDataOnly(){
-  if(!confirm("공부 데이터를 전체 초기화할까요?\n\n삭제됨:\n- 학습기록\n- 암기현황\n- 오늘의 복습\n- 오답노트\n- 해결된 오답\n\n유지됨:\n- 등록한 본문\n- 기도 제목 & 묵상")){
+  if(!confirm(`공부 데이터를 전체 초기화할까요?
+
+삭제됨:
+- 학습기록
+- 공부 캘린더
+- 책갈피
+- 암기현황
+- 오늘의 복습
+- 오답노트
+- 해결된 오답
+- 나의 암기 기록 누적 통계
+
+유지됨:
+- 등록한 본문
+- 기도 제목 & 묵상`)){
     return;
   }
   set(K.records,[]);
   set(K.memory,{});
 
   const s=settings();
+  s.bookmarks=[];
+  delete s.memoryCheckHistory;
   delete s.reviewCompletedDates;
+  delete s.todayReviewClearedDate;
+  delete s.todayReviewCacheDate;
+  delete s.todayReviewCacheKeys;
   delete s.readingTimer;
   delete s.lastRead;
   delete s.selectedMemoryChapter;
+  delete s.preservedLearningStats;
   setSettings(s);
 
+  selectedCalendarISO=null;
   state={qs:[],i:0,correct:0,wrong:0,answers:[],answerByIndex:{},start:0,hint:false,lastWrong:[],hintCollapsed:false,feedbackCollapsed:false,hintStep:0,blankMap:{},lastCombo:null,recordId:null};
   readingTimer={chapter:null,elapsed:0,start:0,running:false};
 
@@ -2509,7 +2641,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.42-auto-hints-all-modes-alert";
+const APP_VERSION="5.53-stable";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2866,10 +2998,12 @@ function applyAchievementTimelineCollapse(){
 
 function cleanupRemovedSettings(){
   const s=settings();
-  if(s.todayReviewClearedDate){
+  let changed=false;
+  if(s.todayReviewClearedDate && s.todayReviewClearedDate!==dateISO()){
     delete s.todayReviewClearedDate;
-    setSettings(s);
+    changed=true;
   }
+  if(changed)setSettings(s);
 }
 
 function renderAll(){
@@ -2918,7 +3052,7 @@ if(document.getElementById("toggleSettingsResetBtn"))document.getElementById("to
   applySettingsResetPanelCollapse();
 };
 if(document.getElementById("resetRecordsOnlyBtn"))document.getElementById("resetRecordsOnlyBtn").onclick=resetRecordsOnly;
-if(document.getElementById("resetMemoryDataBtn"))document.getElementById("resetMemoryDataBtn").onclick=resetMemoryDataOnly;
+if(document.getElementById("resetMemoryDataBtn"))document.getElementById("resetMemoryDataBtn").onclick=resetTodayReviewOnly;
 if(document.getElementById("resetWrongNoteDataBtn"))document.getElementById("resetWrongNoteDataBtn").onclick=resetWrongNoteDataOnly;
 if(document.getElementById("resetStudyDataBtn"))document.getElementById("resetStudyDataBtn").onclick=resetStudyDataOnly;
 if(el.startReviewBtn) el.startReviewBtn.onclick=()=>{
@@ -2926,6 +3060,13 @@ if(el.startReviewBtn) el.startReviewBtn.onclick=()=>{
   if(!qs.length){alert("오늘 추천 복습이 없습니다.");return;}
   startSmartReviewExam();
 };
+if(document.getElementById("randomReviewBtn"))document.getElementById("randomReviewBtn").onclick=()=>{
+  const qs=getSmartReviewVerses();
+  if(!qs.length){alert("랜덤 복습할 구절이 없습니다.");return;}
+  startRandomReviewExam();
+};
+if(document.getElementById("startFavoriteOnlyBtn"))document.getElementById("startFavoriteOnlyBtn").onclick=startFavoriteOnlyExam;
+if(document.getElementById("startConfuseOnlyBtn"))document.getElementById("startConfuseOnlyBtn").onclick=startConfuseOnlyExam;
 if(document.getElementById("startWrongNoteBtn"))document.getElementById("startWrongNoteBtn").onclick=startWrongNoteExam;
 if(document.getElementById("toggleAchievementBtn"))document.getElementById("toggleAchievementBtn").onclick=()=>{
   setAchievementTimelineCollapsed("achievement",!getAchievementTimelineCollapsed("achievement"));
