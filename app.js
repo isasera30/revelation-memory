@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.18-stats-card-width";
+const APP_VERSION="5.19-memory-status-width";
 
 function formatDateTime(ts){
   if(!ts)return "";

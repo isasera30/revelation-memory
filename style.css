@@ -1822,3 +1822,84 @@ button{
     line-height:1.1 !important;
   }
 }
+
+
+/* v5.19 - 암기 현황 카드 폭 정리 */
+/* PC: 나의 암기 기록 카드와 비슷한 폭 */
+@media (min-width: 801px){
+  #memoryStatusPanel .cards,
+  #memoryStatusPanel .memorySummaryGrid,
+  #memoryStatusPanel .statsGrid{
+    display:grid !important;
+    grid-template-columns:repeat(5, minmax(140px, 1fr)) !important;
+    gap:10px !important;
+    max-width:880px !important;
+    margin-top:8px !important;
+  }
+
+  #memoryStatusPanel .card{
+    min-height:58px !important;
+    padding:9px 12px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #memoryStatusPanel .card strong{
+    font-size:19px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
+
+/* 태블릿: 3열 */
+@media (min-width: 521px) and (max-width: 800px){
+  #memoryStatusPanel .cards,
+  #memoryStatusPanel .memorySummaryGrid,
+  #memoryStatusPanel .statsGrid{
+    display:grid !important;
+    grid-template-columns:repeat(3, minmax(130px, 1fr)) !important;
+    gap:9px !important;
+    margin-top:8px !important;
+  }
+
+  #memoryStatusPanel .card{
+    min-height:62px !important;
+    padding:9px 12px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #memoryStatusPanel .card strong{
+    font-size:18px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
+
+/* 모바일: 2열 */
+@media (max-width: 520px){
+  #memoryStatusPanel .cards,
+  #memoryStatusPanel .memorySummaryGrid,
+  #memoryStatusPanel .statsGrid{
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:8px !important;
+    margin-top:6px !important;
+  }
+
+  #memoryStatusPanel .card{
+    min-height:66px !important;
+    padding:9px 10px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #memoryStatusPanel .card strong{
+    font-size:18px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
