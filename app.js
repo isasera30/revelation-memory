@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.20-mobile-reset-inlinefix";
+const APP_VERSION="5.21-mobile-reset-spacing";
 
 function formatDateTime(ts){
   if(!ts)return "";

@@ -158,7 +158,7 @@ body.dark .chapterBox .chapterMiniBar{background:#4a3d32}
   flex-wrap:wrap;
   gap:18px !important;
   row-gap:16px !important;
-  margin-top:18px !important;
+  margin-top:6px !important;
 }
 #examPanel #favoriteBtn,
 #examPanel #confuseBtn,
@@ -216,7 +216,7 @@ body.dark .chapterBox .chapterMiniBar{background:#4a3d32}
   grid-template-columns:minmax(0, 1fr) minmax(0, 1fr) !important;
   gap:18px !important;
   max-width:760px !important;
-  margin-top:18px !important;
+  margin-top:6px !important;
 }
 
 .prayerTools label{
@@ -382,7 +382,7 @@ body.dark .chapterBox .chapterMiniBar{background:#4a3d32}
 
 /* Bulk exam button spacing and result controls */
 .bulkActions{
-  margin-top:18px !important;
+  margin-top:6px !important;
 }
 .bulkResultActions{
   margin-top:14px !important;
@@ -1623,7 +1623,7 @@ button{
 
 /* --- Settings reset spacing fix --- */
 .settingsResetContent{
-  margin-top:18px !important;
+  margin-top:6px !important;
 }
 
 /* Keep reset buttons on one line where possible */
@@ -1901,16 +1901,5 @@ button{
     font-size:18px !important;
     margin-top:1px !important;
     line-height:1.1 !important;
-  }
-}
-
-
-/* v5.21 mobile settings spacing */
-@media (max-width:760px){
-  #settingsPanel .settingsGridAligned .settingsResetCardInline{
-    margin-top:4px !important;
-  }
-  #settingsPanel .settingsGridAligned .settingsResetCardInline .settingsResetHeader{
-    margin-top:-10px !important;
   }
 }
