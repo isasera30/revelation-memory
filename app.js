@@ -537,7 +537,6 @@ function startQuestionSet(qs, label="복습"){
   if(!qs.length){alert("출제할 구절이 없습니다.");return;}
   el.modeSelect.value="write";
   state={qs:qs.slice(),i:0,correct:0,wrong:0,answers:[],answerByIndex:{},start:Date.now(),hint:false,lastWrong:[],hintCollapsed:false,feedbackCollapsed:false,hintStep:0,blankMap:{},lastCombo:null,recordId:null,reviewTargetDate:null};
-  if(state.examAdjustedMessage)alert(state.examAdjustedMessage);
   const bulkPanel=document.getElementById("bulkExamPanel");
   if(bulkPanel)bulkPanel.classList.add("hidden");
   el.resultPanel.classList.add("hidden");
@@ -713,6 +712,16 @@ function modeAwareHint(q, step=1){
 }
 function renderConfiguredHint(q){
   const mode=hintMode();
+  const examMode=el.modeSelect.value==="review"?"write":el.modeSelect.value;
+  if(mode==="off")return "";
+
+  if(examMode==="blank"){
+    if(mode==="initial")return `<b>자동 힌트 · 첫 글자</b><br>${esc(blankHintByStep(q,2))}`;
+    if(mode==="chosung")return `<b>자동 힌트 · 초성</b><br>${esc(blankHintByStep(q,1))}`;
+    if(mode==="blank")return `<b>자동 힌트 · 빈칸</b><br>${esc(blankHintText(q.text))}`;
+    return "";
+  }
+
   if(mode==="initial")return `<b>자동 힌트 · 첫 글자</b><br>${esc(firstWordText(q.text))}`;
   if(mode==="chosung")return `<b>자동 힌트 · 초성</b><br>${esc(choseongText(q.text))}`;
   if(mode==="blank")return `<b>자동 힌트 · 빈칸</b><br>${esc(blankHintText(q.text))}`;
@@ -722,11 +731,14 @@ function renderConfiguredHint(q){
 function renderBulkConfiguredHint(q, examMode){
   const mode=hintMode();
   if(mode==="off")return "";
+
   if(examMode==="blank"){
     if(mode==="initial")return `<b>자동 힌트 · 첫 글자</b><br>${esc(blankHintByStep(q,2))}`;
     if(mode==="chosung")return `<b>자동 힌트 · 초성</b><br>${esc(blankHintByStep(q,1))}`;
     if(mode==="blank")return `<b>자동 힌트 · 빈칸</b><br>${esc(blankHintText(q.text))}`;
+    return "";
   }
+
   if(mode==="initial")return `<b>자동 힌트 · 첫 글자</b><br>${esc(firstWordText(q.text))}`;
   if(mode==="chosung")return `<b>자동 힌트 · 초성</b><br>${esc(choseongText(q.text))}`;
   if(mode==="blank")return `<b>자동 힌트 · 빈칸</b><br>${esc(blankHintText(q.text))}`;
@@ -942,7 +954,8 @@ function pickQuestions(){
   const n=allowRepeat ? requested : Math.min(requested, pool.length);
 
   if(!allowRepeat && requested>pool.length){
-    state.examAdjustedMessage=`선택한 범위의 구절은 ${pool.length}개입니다. 이 모드는 중복 출제 없이 ${pool.length}문제로 진행됩니다.`;
+    const modeLabel=mode==="ref"?"장절 맞히기":"전체 구절 입력";
+    state.examAdjustedMessage=`선택한 범위의 구절은 ${pool.length}개입니다. ${modeLabel} 모드는 중복 출제 없이 ${pool.length}문제로 진행됩니다.`;
   }else{
     state.examAdjustedMessage="";
   }
@@ -976,6 +989,7 @@ function startExam(){
     alert(el.rangeSelect.value==="custom"?"시작 범위가 종료 범위보다 앞서야 합니다.":"출제할 구절이 없습니다.");
     return;
   }
+  if(state.examAdjustedMessage)alert(state.examAdjustedMessage);
   const bulkPanel=document.getElementById("bulkExamPanel");
   if(bulkPanel)bulkPanel.classList.add("hidden");
   el.examPanel.classList.remove("hidden");el.resultPanel.classList.add("hidden");renderQuestion();window.scrollTo({top:el.examPanel.offsetTop-10,behavior:"smooth"});
@@ -2495,7 +2509,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.38-hint-options-fix";
+const APP_VERSION="5.42-auto-hints-all-modes-alert";
 
 function formatDateTime(ts){
   if(!ts)return "";
