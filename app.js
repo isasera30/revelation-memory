@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.13-pc-buttons-layout";
+const APP_VERSION="5.17-compact-cards";
 
 function formatDateTime(ts){
   if(!ts)return "";
