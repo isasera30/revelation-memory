@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.28-prayer-controls-actual";
+const APP_VERSION="5.29-exam-mobile-polish";
 
 function formatDateTime(ts){
   if(!ts)return "";
