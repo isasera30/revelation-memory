@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.20-mobile-reset-layout";
+const APP_VERSION="5.20-mobile-reset-actual";
 
 function formatDateTime(ts){
   if(!ts)return "";
