@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-53-stable";
+const CACHE="gyesirok-memory-v5-54-individual-hide-preserve";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {

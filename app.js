@@ -1717,18 +1717,32 @@ window.toggleReadText=function(id){
   if(node)node.classList.toggle("hiddenText");
 }
 
+function getIndividualHiddenReadIds(){
+  return [...document.querySelectorAll("#readingContent .verseText.hiddenText")].map(node=>node.id.replace(/^read-/,""));
+}
+
+function restoreIndividualHiddenReadIds(ids){
+  (ids||[]).forEach(id=>{
+    const node=document.getElementById("read-"+id);
+    if(node)node.classList.add("hiddenText");
+  });
+}
+
 window.markReadFavorite=function(kq){
+  const hiddenIds=getIndividualHiddenReadIds();
   const m=mem();
   m[kq]=m[kq]||{};
   m[kq].fav=!m[kq].fav;
   const nowFav=m[kq].fav;
   setMem(m);
   renderReading();
+  restoreIndividualHiddenReadIds(hiddenIds);
   renderLists();
   showMiniToast(nowFav ? "즐겨찾기에 저장했습니다." : "즐겨찾기를 해제했습니다.");
 }
 
 window.markReadConfuse=function(kq){
+  const hiddenIds=getIndividualHiddenReadIds();
   const v=verses().find(x=>key(x)===kq);
   if(!v)return;
   const m=mem();
@@ -1740,6 +1754,7 @@ window.markReadConfuse=function(kq){
     m[kq].resolved=false;
     setMem(m);
     renderAll();
+    restoreIndividualHiddenReadIds(hiddenIds);
   }
 }
 
@@ -2641,7 +2656,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.53-stable";
+const APP_VERSION="5.54-individual-hide-preserve";
 
 function formatDateTime(ts){
   if(!ts)return "";
