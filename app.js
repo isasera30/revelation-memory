@@ -1718,7 +1718,7 @@ function renderSearch(){
       let html=`<div class="item searchQuickItem"><b>📖 ${n}장 바로가기</b><br><button type="button" class="secondary miniBtn" onclick="jumpToReadingChapter(${n})">${n}장 본문 읽기로 이동</button></div>`;
       html+=`<div class="item"><b>🔎 각 장의 ${n}절 모아보기</b><br><span class="note">${verseMatches.length?verseMatches.length+"개 구절":"해당 절 없음"}</span></div>`;
       if(verseMatches.length){
-        html+=verseMatches.map(v=>`<div class="item"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("");
+        html+=verseMatches.map(v=>`<div class="item searchResultVerseItem"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("");
       }
       el.searchResults.innerHTML=html;
       return;
@@ -1730,7 +1730,7 @@ function renderSearch(){
     const vs=Number(refMatch[2]);
     const found=all.filter(v=>v.chapter===ch && v.verse===vs);
     el.searchResults.innerHTML=found.length
-      ? found.map(v=>`<div class="item"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("")
+      ? found.map(v=>`<div class="item searchResultVerseItem"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("")
       : `<p class="note">계 ${ch}:${vs} 구절을 찾지 못했습니다.</p>`;
     return;
   }
@@ -1744,7 +1744,7 @@ function renderSearch(){
   );
 
   el.searchResults.innerHTML=results.length
-    ? results.slice(0,80).map(v=>`<div class="item"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("")+
+    ? results.slice(0,80).map(v=>`<div class="item searchResultVerseItem"><b>계 ${v.chapter}:${v.verse}</b> ${esc(v.text)}</div>`).join("")+
       (results.length>80?`<p class="note">외 ${results.length-80}개 결과가 더 있습니다.</p>`:"")
     : "<p class='note'>검색 결과가 없습니다.</p>";
 }
@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.21-mobile-reset-spacing";
+const APP_VERSION="5.25-search-result-text-actual";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -2849,3 +2849,38 @@ setTimeout(maybeShowBackupReminder,800);
 if("serviceWorker" in navigator){navigator.serviceWorker.register("./sw.js").catch(()=>{})}
 
 ensureReadingTimerInterval();
+
+
+/* v5.22 PWA auto update */
+(function(){
+  if (!("serviceWorker" in navigator)) return;
+  let refreshing = false;
+
+  navigator.serviceWorker.addEventListener("controllerchange", function(){
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  window.addEventListener("load", function(){
+    navigator.serviceWorker.getRegistration().then(function(reg){
+      if (!reg) return;
+      reg.update();
+
+      if (reg.waiting) {
+        reg.waiting.postMessage({type:"SKIP_WAITING"});
+      }
+
+      reg.addEventListener("updatefound", function(){
+        const worker = reg.installing;
+        if (!worker) return;
+        worker.addEventListener("statechange", function(){
+          if (worker.state === "installed" && navigator.serviceWorker.controller) {
+            worker.postMessage({type:"SKIP_WAITING"});
+          }
+        });
+      });
+    });
+  });
+})();
+

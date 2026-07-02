@@ -1903,3 +1903,39 @@ button{
     line-height:1.1 !important;
   }
 }
+
+
+/* v5.23 - 장/절 검색창 폰트 크기 조정 */
+#searchInput.searchInput{
+  font-size:15px !important;
+}
+#searchInput.searchInput::placeholder{
+  font-size:15px !important;
+}
+
+
+/* v5.24 - 장/절 검색창 실제 표시 크기 보정 */
+html body #searchInput.searchInput,
+html body input#searchInput.searchInput{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  padding:12px 14px !important;
+  font-weight:400 !important;
+}
+
+html body #searchInput.searchInput::placeholder,
+html body input#searchInput.searchInput::placeholder{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+}
+
+
+/* v5.25 - 장절 검색 결과 구절 본문 글자 크기만 조정 */
+#searchResults .searchResultVerseItem{
+  font-size:15px !important;
+  line-height:1.7 !important;
+}
+#searchResults .searchResultVerseItem b{
+  font-size:15px !important;
+}
