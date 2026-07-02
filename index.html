@@ -304,6 +304,13 @@
           <option value="confuse">헷갈림 노트</option>
         </select>
       </label>
+      <label id="blankDifficultyLabel" class="hidden">빈칸 난이도
+        <select id="blankDifficultySelect">
+          <option value="easy" selected>초급</option>
+          <option value="medium">중급</option>
+          <option value="hard">고급</option>
+        </select>
+      </label>
       <label id="countSelectLabel">문제 수
         <select id="countSelect">
           <option value="5">5문제</option>
@@ -354,7 +361,7 @@
     <div id="questionBody" class="question"></div>
     <textarea id="answerInput" rows="6" placeholder="정답을 입력하세요"></textarea>
     <div id="hintBox" class="hint hidden"></div>
-    <div class="actions">
+    <div class="actions examActionRow">
       <button id="favoriteBtn" class="secondary">⭐ 즐겨찾기</button>
       <button id="confuseBtn" class="secondary">📝 헷갈림 저장</button>
       <button id="hintBtn" class="secondary">힌트 보기</button>
@@ -362,7 +369,7 @@
       <button id="finishBtn" class="secondary hidden">시험 종료</button>
     </div>
     <div id="feedback" class="feedback hidden"></div>
-    <div class="actions">
+    <div class="actions examNextRow">
       <button id="nextBtn" class="secondary hidden">다음 문제</button>
     </div>
   </section>
@@ -391,6 +398,7 @@
   <section id="resultPanel" class="panel hidden">
     <h2>시험 결과</h2>
     <div id="resultCards" class="cards"></div>
+    <div id="resultActionRow" class="actions resultActionRow"></div>
     <textarea id="reflectionText" rows="3" placeholder="오늘 공부 후 감사/묵상 메모를 남겨도 좋아요."></textarea>
     <div class="actions">
       <button id="saveReflectionBtn" class="secondary">묵상 저장</button>
