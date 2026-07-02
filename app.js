@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.17-compact-cards";
+const APP_VERSION="5.18-stats-card-width";
 
 function formatDateTime(ts){
   if(!ts)return "";

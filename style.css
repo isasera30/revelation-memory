@@ -1738,3 +1738,87 @@ button{
     font-size:18px !important;
   }
 }
+
+
+/* v5.18 - 나의 암기 기록 / 학습 기록 카드 폭 정리 */
+/* PC: 카드 폭을 줄여 정보 밀도 개선 */
+@media (min-width: 801px){
+  #deepStats.cards,
+  #studyCards.cards{
+    display:grid !important;
+    grid-template-columns:repeat(5, minmax(140px, 1fr)) !important;
+    gap:10px !important;
+    max-width:880px !important;
+    margin-top:8px !important;
+  }
+
+  #deepStats.cards > .card,
+  #studyCards.cards > .card{
+    min-height:58px !important;
+    padding:9px 12px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #deepStats.cards > .card strong,
+  #studyCards.cards > .card strong{
+    font-size:19px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
+
+/* 태블릿: 너무 넓지 않게 3열 */
+@media (min-width: 521px) and (max-width: 800px){
+  #deepStats.cards,
+  #studyCards.cards{
+    display:grid !important;
+    grid-template-columns:repeat(3, minmax(130px, 1fr)) !important;
+    gap:9px !important;
+    margin-top:8px !important;
+  }
+
+  #deepStats.cards > .card,
+  #studyCards.cards > .card{
+    min-height:62px !important;
+    padding:9px 12px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #deepStats.cards > .card strong,
+  #studyCards.cards > .card strong{
+    font-size:18px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
+
+/* 모바일: 1열에서 2열로 변경 */
+@media (max-width: 520px){
+  #deepStats.cards,
+  #studyCards.cards{
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:8px !important;
+    margin-top:6px !important;
+  }
+
+  #deepStats.cards > .card,
+  #studyCards.cards > .card{
+    min-height:66px !important;
+    padding:9px 10px !important;
+    border-radius:14px !important;
+    font-size:13px !important;
+    line-height:1.25 !important;
+  }
+
+  #deepStats.cards > .card strong,
+  #studyCards.cards > .card strong{
+    font-size:18px !important;
+    margin-top:1px !important;
+    line-height:1.1 !important;
+  }
+}
