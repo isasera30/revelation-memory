@@ -2300,7 +2300,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.25-search-result-text-actual";
+const APP_VERSION="5.27-prayer-textarea-placeholder-actual";
 
 function formatDateTime(ts){
   if(!ts)return "";

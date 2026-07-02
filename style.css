@@ -1939,3 +1939,54 @@ html body input#searchInput.searchInput::placeholder{
 #searchResults .searchResultVerseItem b{
   font-size:15px !important;
 }
+
+
+/* v5.26 - 기도 제목 입력/검색 예시 폰트 크기 */
+#prayerTitleInput.searchInput,
+#prayerSearchInput.searchInput{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  padding:12px 14px !important;
+}
+
+#prayerTitleInput.searchInput::placeholder,
+#prayerSearchInput.searchInput::placeholder{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+}
+
+/* v5.26 - 모바일 기도 제목 카드 버튼 비율만 조정 */
+@media(max-width:520px){
+  #prayerList .prayerItem .verseReadActions,
+  #prayerList .prayerItem .smallBtns{
+    display:grid !important;
+    grid-template-columns:0.9fr 1.28fr 0.9fr 0.9fr !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+
+  #prayerList .prayerItem .verseReadActions button,
+  #prayerList .prayerItem .smallBtns button{
+    width:100% !important;
+    min-width:0 !important;
+    padding-left:4px !important;
+    padding-right:4px !important;
+    white-space:nowrap !important;
+  }
+}
+
+
+/* v5.27 - 기도 제목 & 묵상 큰 입력창 placeholder 글자 크기 실제 적용 */
+html body #prayerText,
+html body textarea#prayerText{
+  font-size:14px !important;
+  line-height:1.45 !important;
+}
+
+html body #prayerText::placeholder,
+html body textarea#prayerText::placeholder{
+  font-size:14px !important;
+  line-height:1.45 !important;
+  font-weight:400 !important;
+}
