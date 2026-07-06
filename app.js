@@ -962,7 +962,7 @@ function submitBulkExam(){
   if(fb){
     fb.className=`feedback ${wrong?"no":"ok"}`;
     fb.innerHTML=`<b>${wrong?"❌ 채점 완료":"✅ 모두 정답입니다."}</b><br>정답 ${correct} · 오답 ${wrong} · 총 ${state.qs.length}절`+
-      (wrong?`<br><br>${details.filter(d=>!d.ok).map(d=>`<div class="bulkWrong"><b>계 ${d.q.chapter}:${d.q.verse}</b><br>정답: ${markWrongParts(d.user,d.target)}<br>입력: ${esc(d.user||"(빈칸)")}</div>`).join("")}`:"");
+      (wrong?`<br><br>${details.filter(d=>!d.ok).map(d=>`<div class="bulkWrong"><b>계 ${d.q.chapter}:${d.q.verse}</b><br>정답: ${markWrongParts(d.user,d.target)}<br>입력: ${markInputWrongParts(d.user,d.target)}</div>`).join("")}`:"");
     fb.classList.remove("hidden");
   }
   const finish=document.getElementById("bulkFinishBtn");
@@ -1136,40 +1136,102 @@ function safeExactCompare(user, answer){
 
 
 
-function markWrongParts(user, answer){
-  const uWords=String(user||"").trim().split(/\s+/).filter(Boolean);
-  const aWords=String(answer||"").trim().split(/\s+/).filter(Boolean);
-  if(!aWords.length)return "";
+function buildExamCharDiff(user, answer){
+  const answerOriginal=String(answer||"");
+  const userOriginal=String(user||"");
 
-  let ui=0;
-  const out=[];
-
-  for(let ai=0; ai<aWords.length; ai++){
-    const aw=aWords[ai];
-
-    if(ui<uWords.length && normalizeForExam(uWords[ui])===normalizeForExam(aw)){
-      out.push(esc(aw));
-      ui++;
-      continue;
-    }
-
-    let found=-1;
-    for(let j=ui+1; j<uWords.length; j++){
-      if(normalizeForExam(uWords[j])===normalizeForExam(aw)){
-        found=j;
-        break;
-      }
-    }
-
-    if(found>=0){
-      out.push(esc(aw));
-      ui=found+1;
-    }else{
-      out.push(`<span class="wrongPart">${esc(aw)}</span>`);
+  const aChars=[];
+  const aMap=[];
+  for(let i=0;i<answerOriginal.length;i++){
+    const ch=answerOriginal.charAt(i);
+    if(!/\s/.test(ch)){
+      aMap.push(i);
+      aChars.push(normalizeForExam(ch));
     }
   }
 
-  return out.join(" ");
+  const uChars=[];
+  const uMap=[];
+  for(let i=0;i<userOriginal.length;i++){
+    const ch=userOriginal.charAt(i);
+    if(!/\s/.test(ch)){
+      uMap.push(i);
+      uChars.push(normalizeForExam(ch));
+    }
+  }
+
+  const n=aChars.length, m=uChars.length;
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  const op=Array.from({length:n+1},()=>Array(m+1).fill(""));
+
+  for(let i=1;i<=n;i++){dp[i][0]=i;op[i][0]="del";}
+  for(let j=1;j<=m;j++){dp[0][j]=j;op[0][j]="ins";}
+
+  for(let i=1;i<=n;i++){
+    for(let j=1;j<=m;j++){
+      if(aChars[i-1]===uChars[j-1]){
+        dp[i][j]=dp[i-1][j-1];
+        op[i][j]="eq";
+      }else{
+        const rep=dp[i-1][j-1]+1;
+        const del=dp[i-1][j]+1;
+        const ins=dp[i][j-1]+1;
+        const best=Math.min(rep,del,ins);
+        dp[i][j]=best;
+        // substitution first keeps wrong letters at the current position instead of flying to the end
+        if(best===rep)op[i][j]="rep";
+        else if(best===del)op[i][j]="del";
+        else op[i][j]="ins";
+      }
+    }
+  }
+
+  const answerWrong=new Set();
+  const userWrong=new Set();
+
+  let i=n,j=m;
+  while(i>0 || j>0){
+    const cur=op[i][j];
+    if(cur==="eq"){
+      i--; j--;
+    }else if(cur==="rep"){
+      answerWrong.add(aMap[i-1]);
+      userWrong.add(uMap[j-1]);
+      i--; j--;
+    }else if(cur==="del"){
+      answerWrong.add(aMap[i-1]);
+      i--;
+    }else{
+      userWrong.add(uMap[j-1]);
+      j--;
+    }
+  }
+
+  return {answerOriginal,userOriginal,answerWrong,userWrong};
+}
+
+function renderExamDiffText(original, wrongSet){
+  if(!String(original||"").length)return esc("(빈칸)");
+  let html="";
+  for(let i=0;i<String(original).length;i++){
+    const ch=String(original).charAt(i);
+    if(wrongSet.has(i))html+=`<span class="wrongPart">${esc(ch)}</span>`;
+    else html+=esc(ch);
+  }
+  return html;
+}
+
+function markWrongParts(user, answer){
+  if(normalizeForExam(user)===normalizeForExam(answer))return esc(answer||"");
+  const diff=buildExamCharDiff(user,answer);
+  return renderExamDiffText(diff.answerOriginal,diff.answerWrong);
+}
+
+function markInputWrongParts(user, answer){
+  if(!String(user||"").trim())return esc("(빈칸)");
+  if(normalizeForExam(user)===normalizeForExam(answer))return esc(user||"");
+  const diff=buildExamCharDiff(user,answer);
+  return renderExamDiffText(diff.userOriginal,diff.userWrong);
 }
 
 
@@ -1832,8 +1894,6 @@ window.openTypingPracticeBox=function(kq){
     setTypingPracticeValue(kq,area.value);
     growTypingPracticeInput(area);
     updateTypingPracticeSavedLabel(box,area);
-    result.classList.add("hidden");
-    result.innerHTML="";
   });
 
   box.querySelector(".typingPracticeCheckBtn").onclick=function(){
@@ -2797,7 +2857,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.64-autosave-label-only";
+const APP_VERSION="5.68-exam-char-diff";
 
 function formatDateTime(ts){
   if(!ts)return "";

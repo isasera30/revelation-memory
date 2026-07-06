@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-64-autosave-label-only";
+const CACHE="gyesirok-memory-v5-68-exam-char-diff";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {
