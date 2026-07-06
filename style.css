@@ -2277,3 +2277,175 @@ html body #prayerSearchInput.searchInput::placeholder{
   white-space:nowrap !important;
   line-height:1.2 !important;
 }
+
+
+/* v5.57 따라쓰기 */
+.typingPracticeBox{
+  margin-top:12px;
+  padding:14px;
+  border:1px solid #eadccb;
+  border-radius:16px;
+  background:#fff7e8;
+  clear:both;
+}
+.typingPracticeTitle{font-weight:900;margin-bottom:10px;color:#4b3c2f}
+.typingPracticeInput{
+  width:100%;
+  min-height:54px;
+  overflow:hidden;
+  resize:none;
+  border:1px solid #dccbb8;
+  border-radius:14px;
+  background:#fff;
+  color:#2b2520;
+  padding:13px 14px;
+  font:inherit;
+  line-height:1.7;
+  outline:none;
+}
+.typingPracticeInput:focus{
+  border-color:#2f7d63;
+  box-shadow:0 0 0 3px rgba(47,125,99,.12);
+}
+.typingPracticeSaved{margin-top:8px;font-size:13px;color:#806953;font-weight:800}
+.typingPracticeActions{display:flex;gap:8px;flex-wrap:nowrap;margin-top:10px}
+.typingPracticeActions button{flex:0 0 auto;white-space:nowrap}
+.typingPracticeResult{
+  margin-top:12px;
+  padding:12px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid #eadccb;
+  line-height:1.9;
+  word-break:break-all;
+  white-space:pre-wrap;
+}
+.typingCorrect{color:#2f7d63;font-weight:800}
+.typingWrong{color:#c94a3a;font-weight:900;text-decoration:underline}
+.typingMissing{color:#aaa;background:#f1ece4;border-radius:4px}
+.typingExtra{color:#c94a3a;background:#fdecea;border-radius:4px;font-weight:900}
+body.dark .typingPracticeBox{background:#2b251f;border-color:#4a3d32}
+body.dark .typingPracticeTitle{color:#f3eadf}
+body.dark .typingPracticeInput,
+body.dark .typingPracticeResult{background:#1f1b17;color:#f3eadf;border-color:#4a3d32}
+body.dark .typingPracticeSaved{color:#cbb8a1}
+@media(max-width:760px){
+  #readingPanel .verseReadActions{
+    display:grid!important;
+    grid-template-columns:repeat(3,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+    align-items:stretch!important;
+    margin-top:12px!important;
+  }
+  #readingPanel .verseReadActions button{
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding-left:4px!important;
+    padding-right:4px!important;
+    white-space:nowrap!important;
+    font-size:13px!important;
+  }
+  .typingPracticeBox{margin-top:12px;padding:12px}
+  .typingPracticeActions{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:8px;
+  }
+  .typingPracticeActions button{
+    width:100%!important;
+    min-width:0!important;
+    padding-left:6px!important;
+    padding-right:6px!important;
+    font-size:13px!important;
+  }
+}
+@media(max-width:390px){
+  #readingPanel .verseReadActions{gap:6px!important}
+  #readingPanel .verseReadActions button,
+  .typingPracticeActions button{
+    font-size:12px!important;
+    padding-left:3px!important;
+    padding-right:3px!important;
+  }
+}
+
+
+/* v5.58 - 따라쓰기 하단 버튼 크기 통일 */
+.typingPracticeSaved{
+  font-size:12px !important;
+  font-weight:700 !important;
+  opacity:.9;
+}
+.typingPracticeActions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.typingPracticeActions button{
+  height:40px !important;
+  padding:0 18px !important;
+  border-radius:999px !important;
+  font-size:15px !important;
+  font-weight:700 !important;
+  line-height:40px !important;
+}
+@media (max-width:760px){
+ .typingPracticeActions button{
+   height:38px !important;
+   line-height:38px !important;
+   font-size:13px !important;
+   padding:0 12px !important;
+ }
+}
+
+
+/* v5.59 - 따라쓰기 하단 버튼 최종 소형화 */
+#readingPanel .typingPracticeBox .typingPracticeActions{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:8px !important;
+  align-items:center !important;
+  margin-top:10px !important;
+}
+#readingPanel .typingPracticeBox .typingPracticeActions button.secondary,
+#readingPanel .typingPracticeBox .typingPracticeActions button{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  height:34px !important;
+  min-height:34px !important;
+  line-height:34px !important;
+  padding:0 13px !important;
+  font-size:13px !important;
+  font-weight:800 !important;
+  border-radius:999px !important;
+  flex:0 0 auto !important;
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+#readingPanel .typingPracticeBox .typingPracticeSaved{
+  font-size:12px !important;
+  line-height:1.4 !important;
+  margin-top:8px !important;
+  font-weight:700 !important;
+}
+@media(max-width:760px){
+  #readingPanel .typingPracticeBox .typingPracticeActions{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    gap:7px !important;
+  }
+  #readingPanel .typingPracticeBox .typingPracticeActions button.secondary,
+  #readingPanel .typingPracticeBox .typingPracticeActions button{
+    width:auto !important;
+    min-width:0 !important;
+    height:32px !important;
+    min-height:32px !important;
+    line-height:32px !important;
+    padding:0 11px !important;
+    font-size:12px !important;
+    flex:0 0 auto !important;
+  }
+}

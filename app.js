@@ -1705,6 +1705,7 @@ function renderReading(){
         <button class="secondary" onclick="event.stopPropagation();markReadFavorite('${kq}')">${r.fav?"⭐ 해제":"⭐ 저장"}</button>
         <button class="secondary" onclick="event.stopPropagation();markReadConfuse('${kq}')">📝 헷갈림</button>
         <button class="secondary" onclick="event.stopPropagation();addBookmark(${v.chapter},${v.verse})">📌 책갈피</button>
+        <button class="secondary" type="button" onclick="event.stopPropagation();openTypingPracticeBox('${kq}')">✍️ 따라쓰기</button>
       </div>
     </div>`;
   }).join("") || "<p class='note'>이 장의 본문을 찾지 못했습니다. 백업을 불러왔는지 확인해주세요.</p>";
@@ -1716,6 +1717,146 @@ window.toggleReadText=function(id){
   const node=document.getElementById("read-"+id);
   if(node)node.classList.toggle("hiddenText");
 }
+
+
+/* v5.57 따라쓰기 - id 형식 보정 */
+const TYPING_PRACTICE_KEY="gm10_typing_practice";
+let activeTypingPracticeKey=null;
+
+function typingPracticeDomId(kq){
+  return String(kq||"").replace(":","-");
+}
+function getTypingPracticeStore(){
+  try{return JSON.parse(localStorage.getItem(TYPING_PRACTICE_KEY)||"{}")||{};}catch(e){return {};}
+}
+function saveTypingPracticeStore(data){
+  localStorage.setItem(TYPING_PRACTICE_KEY,JSON.stringify(data||{}));
+}
+function getTypingPracticeValue(kq){
+  return getTypingPracticeStore()[kq]||"";
+}
+function setTypingPracticeValue(kq,value){
+  const data=getTypingPracticeStore();
+  data[kq]=value||"";
+  saveTypingPracticeStore(data);
+}
+function clearTypingPracticeValue(kq){
+  const data=getTypingPracticeStore();
+  delete data[kq];
+  saveTypingPracticeStore(data);
+}
+function growTypingPracticeInput(area){
+  if(!area)return;
+  area.style.height="auto";
+  area.style.height=Math.max(54,area.scrollHeight)+"px";
+}
+function updateTypingPracticeSavedLabel(panel,area){
+  const label=panel?.querySelector(".typingPracticeSaved");
+  if(!label||!area)return;
+  label.classList.toggle("hidden",!(area.value||"").trim());
+}
+function closeTypingPracticeBox(){
+  const box=document.querySelector(".typingPracticeBox");
+  if(box)box.remove();
+  activeTypingPracticeKey=null;
+}
+function normalizeTypingCompareText(text){
+  return String(text||"").replace(/\s+/g,"");
+}
+function typingPracticeCompareHTML(answer,input){
+  const originalAnswer=String(answer||"");
+  const normalizedInput=normalizeTypingCompareText(input);
+  let inputIndex=0;
+  let html="";
+
+  for(let i=0;i<originalAnswer.length;i++){
+    const a=originalAnswer.charAt(i);
+
+    if(/\s/.test(a)){
+      html+=esc(a);
+      continue;
+    }
+
+    const b=normalizedInput.charAt(inputIndex);
+
+    if(!b){
+      html+=`<span class="typingMissing">${esc(a)}</span>`;
+    }else if(a===b){
+      html+=`<span class="typingCorrect">${esc(a)}</span>`;
+    }else{
+      html+=`<span class="typingWrong">${esc(a)}</span>`;
+    }
+    inputIndex++;
+  }
+
+  if(inputIndex<normalizedInput.length){
+    html+=`<span class="typingExtra">${esc(normalizedInput.slice(inputIndex))}</span>`;
+  }
+
+  return html || "<span class='note'>입력한 내용이 없습니다.</span>";
+}
+window.openTypingPracticeBox=function(kq){
+  if(activeTypingPracticeKey===kq){
+    closeTypingPracticeBox();
+    return;
+  }
+  closeTypingPracticeBox();
+
+  const v=verses().find(x=>key(x)===kq);
+  const target=document.getElementById("versebox-"+typingPracticeDomId(kq));
+  if(!v||!target)return;
+
+  activeTypingPracticeKey=kq;
+  const box=document.createElement("div");
+  box.className="typingPracticeBox";
+  box.innerHTML=`
+    <div class="typingPracticeTitle">✍️ 따라쓰기</div>
+    <textarea class="typingPracticeInput" rows="1" placeholder="이 절을 따라 써보세요."></textarea>
+    <div class="typingPracticeSaved">💾 자동 저장됨</div>
+    <div class="typingPracticeActions">
+      <button type="button" class="secondary typingPracticeCheckBtn">정답 확인</button>
+      <button type="button" class="secondary typingPracticeResetBtn">초기화</button>
+      <button type="button" class="secondary typingPracticeCloseBtn">닫기</button>
+    </div>
+    <div class="typingPracticeResult hidden"></div>
+  `;
+  target.appendChild(box);
+
+  const area=box.querySelector(".typingPracticeInput");
+  const result=box.querySelector(".typingPracticeResult");
+  area.value=getTypingPracticeValue(kq);
+  growTypingPracticeInput(area);
+  updateTypingPracticeSavedLabel(box,area);
+
+  area.addEventListener("input",function(){
+    setTypingPracticeValue(kq,area.value);
+    growTypingPracticeInput(area);
+    updateTypingPracticeSavedLabel(box,area);
+    result.classList.add("hidden");
+    result.innerHTML="";
+  });
+
+  box.querySelector(".typingPracticeCheckBtn").onclick=function(){
+    result.innerHTML=typingPracticeCompareHTML(v.text,area.value);
+    result.classList.remove("hidden");
+  };
+
+  box.querySelector(".typingPracticeResetBtn").onclick=function(){
+    if(confirm("이 절의 따라쓰기 내용을 삭제할까요?")){
+      clearTypingPracticeValue(kq);
+      area.value="";
+      growTypingPracticeInput(area);
+      updateTypingPracticeSavedLabel(box,area);
+      result.classList.add("hidden");
+      result.innerHTML="";
+      area.focus();
+    }
+  };
+
+  box.querySelector(".typingPracticeCloseBtn").onclick=closeTypingPracticeBox;
+  setTimeout(function(){area.focus();},30);
+}
+
 
 function getIndividualHiddenReadIds(){
   return [...document.querySelectorAll("#readingContent .verseText.hiddenText")].map(node=>node.id.replace(/^read-/,""));
@@ -2656,7 +2797,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.54-individual-hide-preserve";
+const APP_VERSION="5.64-autosave-label-only";
 
 function formatDateTime(ts){
   if(!ts)return "";
