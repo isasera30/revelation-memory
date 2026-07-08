@@ -1136,78 +1136,111 @@ function safeExactCompare(user, answer){
 
 
 
-function buildExamCharDiff(user, answer){
-  const answerOriginal=String(answer||"");
-  const userOriginal=String(user||"");
-
-  const aChars=[];
-  const aMap=[];
-  for(let i=0;i<answerOriginal.length;i++){
-    const ch=answerOriginal.charAt(i);
-    if(!/\s/.test(ch)){
-      aMap.push(i);
-      aChars.push(normalizeForExam(ch));
-    }
+function makeCompareTokens(text){
+  const arr=[];
+  text=String(text||"");
+  for(let i=0;i<text.length;i++){
+    const raw=text.charAt(i);
+    if(/\s/.test(raw))continue;
+    const norm=normalizeForExam(raw);
+    if(!norm)continue;
+    arr.push({raw,norm,idx:i});
   }
+  return arr;
+}
 
-  const uChars=[];
-  const uMap=[];
-  for(let i=0;i<userOriginal.length;i++){
-    const ch=userOriginal.charAt(i);
-    if(!/\s/.test(ch)){
-      uMap.push(i);
-      uChars.push(normalizeForExam(ch));
-    }
-  }
+function compareTokensLocally(answerOriginal,userOriginal){
+  const a=makeCompareTokens(answerOriginal);
+  const u=makeCompareTokens(userOriginal);
+  const answerWrong=new Set();
+  const userWrong=new Set();
+  const n=a.length, m=u.length;
 
-  const n=aChars.length, m=uChars.length;
+  // 사용자가 구절의 뒷부분만 적어도 맞는 위치에 붙도록,
+  // 정답의 앞/뒤 미입력 구간은 비교 비용에서 제외한다.
   const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
-  const op=Array.from({length:n+1},()=>Array(m+1).fill(""));
+  const op=Array.from({length:n+1},()=>Array(m+1).fill(null));
 
-  for(let i=1;i<=n;i++){dp[i][0]=i;op[i][0]="del";}
-  for(let j=1;j<=m;j++){dp[0][j]=j;op[0][j]="ins";}
+  for(let i=1;i<=n;i++){
+    dp[i][0]=0;
+    op[i][0]="skipLead";
+  }
+  for(let j=1;j<=m;j++){
+    dp[0][j]=j;
+    op[0][j]="insert";
+  }
 
   for(let i=1;i<=n;i++){
     for(let j=1;j<=m;j++){
-      if(aChars[i-1]===uChars[j-1]){
-        dp[i][j]=dp[i-1][j-1];
-        op[i][j]="eq";
-      }else{
-        const rep=dp[i-1][j-1]+1;
-        const del=dp[i-1][j]+1;
-        const ins=dp[i][j-1]+1;
-        const best=Math.min(rep,del,ins);
-        dp[i][j]=best;
-        // substitution first keeps wrong letters at the current position instead of flying to the end
-        if(best===rep)op[i][j]="rep";
-        else if(best===del)op[i][j]="del";
-        else op[i][j]="ins";
+      const same=a[i-1].norm===u[j-1].norm;
+      const diag=dp[i-1][j-1]+(same?0:1);
+      const del=dp[i-1][j]+1;
+      const ins=dp[i][j-1]+1;
+      let best=diag;
+      let bestOp=same?"equal":"replace";
+
+      // 같은 비용이면 대체보다 정답 미입력을 우선해서,
+      // 사용자가 뒷부분만 쓴 경우 앞부분이 빨강으로 오인되지 않게 한다.
+      if(del<best || (del===best && bestOp==="replace")){
+        best=del;
+        bestOp="missing";
       }
+      if(ins<best){
+        best=ins;
+        bestOp="insert";
+      }
+
+      dp[i][j]=best;
+      op[i][j]=bestOp;
     }
   }
 
-  const answerWrong=new Set();
-  const userWrong=new Set();
+  // 정답 뒤쪽 미입력도 허용하되, 같은 비용이면 더 많이 맞춘 위치를 선택한다.
+  let endI=0;
+  let bestCost=Infinity;
+  for(let i=0;i<=n;i++){
+    if(dp[i][m]<bestCost || (dp[i][m]===bestCost && i>endI)){
+      bestCost=dp[i][m];
+      endI=i;
+    }
+  }
 
-  let i=n,j=m;
-  while(i>0 || j>0){
+  const rev=[];
+  let i=endI, j=m;
+  while(j>0){
     const cur=op[i][j];
-    if(cur==="eq"){
+    if(cur==="equal"){
+      rev.push({type:"equal",a:a[i-1],u:u[j-1]});
       i--; j--;
-    }else if(cur==="rep"){
-      answerWrong.add(aMap[i-1]);
-      userWrong.add(uMap[j-1]);
+    }else if(cur==="replace"){
+      answerWrong.add(a[i-1].idx);
+      userWrong.add(u[j-1].idx);
+      rev.push({type:"replace",a:a[i-1],u:u[j-1]});
       i--; j--;
-    }else if(cur==="del"){
-      answerWrong.add(aMap[i-1]);
+    }else if(cur==="missing"){
+      answerWrong.add(a[i-1].idx);
+      rev.push({type:"missing",a:a[i-1]});
       i--;
     }else{
-      userWrong.add(uMap[j-1]);
+      userWrong.add(u[j-1].idx);
+      const pos=(i<n && a[i]) ? a[i].idx : String(answerOriginal||"").length;
+      rev.push({type:"insert",u:u[j-1],pos});
       j--;
     }
   }
+  while(i>0){
+    rev.push({type:"missing",a:a[i-1]});
+    i--;
+  }
+  rev.reverse();
+  for(let k=endI;k<n;k++){
+    rev.push({type:"missing",a:a[k]});
+  }
 
-  return {answerOriginal,userOriginal,answerWrong,userWrong};
+  return {answerOriginal:String(answerOriginal||""),userOriginal:String(userOriginal||""),answerWrong,userWrong,steps:rev};
+}
+function buildExamCharDiff(user, answer){
+  return compareTokensLocally(String(answer||""),String(user||""));
 }
 
 function renderExamDiffText(original, wrongSet){
@@ -1233,7 +1266,6 @@ function markInputWrongParts(user, answer){
   const diff=buildExamCharDiff(user,answer);
   return renderExamDiffText(diff.userOriginal,diff.userWrong);
 }
-
 
 function removeWrongQuestion(q){
   if(!state.lastWrong)state.lastWrong=[];
@@ -1402,7 +1434,7 @@ function submit(){
     state.currentFeedbackTitle=ok?"✅ 정답입니다.":"❌ 오답입니다.";
     state.currentFeedbackHTML=ok
       ? "다음 문제로 넘어가세요."
-      : `<b>정답</b><br>${markWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
+      : `<b>정답</b><br>${markWrongParts(user,target)}<br><br><b>입력</b><br>${markInputWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
     renderCollapsibleBox(el.feedback,"feedback",state.currentFeedbackTitle,state.currentFeedbackHTML,state.feedbackCollapsed);
 
     // 오답 후에도 다시 입력하고 재채점할 수 있도록 제출 버튼은 비활성화하지 않습니다.
@@ -1826,35 +1858,64 @@ function normalizeTypingCompareText(text){
   return String(text||"").replace(/\s+/g,"");
 }
 function typingPracticeCompareHTML(answer,input){
-  const originalAnswer=String(answer||"");
-  const normalizedInput=normalizeTypingCompareText(input);
-  let inputIndex=0;
+  const answerOriginal=String(answer||"");
+  const userOriginal=String(input||"");
+  if(!answerOriginal)return "<span class='note'>정답 내용이 없습니다.</span>";
+
+  const diff=compareTokensLocally(answerOriginal,userOriginal);
+  const steps=diff.steps;
   let html="";
+  let lastAnswerIndex=0;
 
-  for(let i=0;i<originalAnswer.length;i++){
-    const a=originalAnswer.charAt(i);
-
-    if(/\s/.test(a)){
-      html+=esc(a);
-      continue;
+  function appendAnswerGapUntil(originalIndex){
+    while(lastAnswerIndex<originalIndex){
+      html+=esc(answerOriginal.charAt(lastAnswerIndex));
+      lastAnswerIndex++;
     }
-
-    const b=normalizedInput.charAt(inputIndex);
-
-    if(!b){
-      html+=`<span class="typingMissing">${esc(a)}</span>`;
-    }else if(a===b){
-      html+=`<span class="typingCorrect">${esc(a)}</span>`;
-    }else{
-      html+=`<span class="typingWrong">${esc(a)}</span>`;
-    }
-    inputIndex++;
+  }
+  function appendAnswerToken(token,className){
+    appendAnswerGapUntil(token.idx);
+    html+=`<span class="${className}">${esc(token.raw)}</span>`;
+    lastAnswerIndex=token.idx+1;
+  }
+  function appendWrongUserToken(token){
+    html+=`<span class="typingWrong">${esc(token.raw)}</span>`;
   }
 
-  if(inputIndex<normalizedInput.length){
-    html+=`<span class="typingExtra">${esc(normalizedInput.slice(inputIndex))}</span>`;
+  function nextAnswerIndex(from){
+    for(let j=from+1;j<steps.length;j++){
+      if(steps[j].a)return steps[j].a.idx;
+    }
+    return answerOriginal.length;
+  }
+  function userGapAfter(token){
+    let out="";
+    let k=token.idx+1;
+    while(k<userOriginal.length && /\s/.test(userOriginal.charAt(k))){
+      out+=userOriginal.charAt(k);
+      k++;
+    }
+    return out;
   }
 
+  for(let si=0;si<steps.length;si++){
+    const step=steps[si];
+    if(step.type==="equal"){
+      appendAnswerToken(step.a,"typingCorrect");
+    }else if(step.type==="missing"){
+      appendAnswerToken(step.a,"typingMissing");
+    }else if(step.type==="insert"){
+      appendAnswerGapUntil(typeof step.pos==="number" ? step.pos : nextAnswerIndex(si));
+      appendWrongUserToken(step.u);
+      html+=esc(userGapAfter(step.u));
+    }else if(step.type==="replace"){
+      appendAnswerGapUntil(step.a.idx);
+      appendWrongUserToken(step.u);
+      lastAnswerIndex=step.a.idx+1;
+    }
+  }
+
+  appendAnswerGapUntil(answerOriginal.length);
   return html || "<span class='note'>입력한 내용이 없습니다.</span>";
 }
 window.openTypingPracticeBox=function(kq){
@@ -2857,7 +2918,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.68-exam-char-diff";
+const APP_VERSION="5.72-unified-diff-fix";
 
 function formatDateTime(ts){
   if(!ts)return "";
