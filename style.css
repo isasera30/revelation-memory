@@ -2456,54 +2456,7 @@ body.dark .typingPracticeSaved{color:#cbb8a1}
 
 
 
-/* v5.69 - mobile/tablet preview: 즐겨찾기/헷갈림 헤더 버튼 위치 및 크기 고정 */
-@media (max-width:800px){
-  .favoriteQuickPanel .quickExamHeader,
-  .confuseQuickPanel .quickExamHeader{
-    flex-direction:column !important;
-    align-items:flex-start !important;
-    gap:10px !important;
-  }
 
-  .favoriteQuickPanel .quickExamHeader .topActions,
-  .confuseQuickPanel .quickExamHeader .topActions{
-    width:100% !important;
-    display:flex !important;
-    justify-content:flex-end !important;
-    align-items:center !important;
-    gap:8px !important;
-    flex-wrap:nowrap !important;
-  }
-
-  #startFavoriteOnlyBtn,
-  #startConfuseOnlyBtn{
-    width:auto !important;
-    min-width:86px !important;
-    max-width:104px !important;
-    height:34px !important;
-    min-height:34px !important;
-    padding:0 9px !important;
-    font-size:12px !important;
-    line-height:34px !important;
-    border-radius:999px !important;
-    flex:0 0 auto !important;
-    white-space:nowrap !important;
-  }
-
-  #toggleFavoriteListBtn,
-  #toggleConfuseListBtn{
-    width:auto !important;
-    min-width:72px !important;
-    max-width:88px !important;
-    height:34px !important;
-    min-height:34px !important;
-    padding:0 9px !important;
-    font-size:12px !important;
-    line-height:34px !important;
-    flex:0 0 auto !important;
-    white-space:nowrap !important;
-  }
-}
 
 
 
@@ -2658,5 +2611,95 @@ body.dark .typingPracticeSaved{color:#cbb8a1}
     margin:0 !important;
     white-space:nowrap !important;
     flex:1 1 0 !important;
+  }
+}
+
+/* v5.69 - 모바일/태블릿 즐겨찾기/헷갈림 헤더 한 줄 배치 복구 */
+@media (max-width:800px){
+  .favoriteQuickPanel .quickExamHeader,
+  .confuseQuickPanel .quickExamHeader{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+  }
+
+  .favoriteQuickPanel .quickExamHeader h2,
+  .confuseQuickPanel .quickExamHeader h2{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    margin:0 !important;
+    white-space:nowrap !important;
+  }
+
+  .favoriteQuickPanel .quickExamHeader .topActions,
+  .confuseQuickPanel .quickExamHeader .topActions{
+    width:auto !important;
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+    flex:0 0 auto !important;
+  }
+
+  #startFavoriteOnlyBtn,
+  #startConfuseOnlyBtn{
+    width:auto !important;
+    min-width:86px !important;
+    max-width:104px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 9px !important;
+    font-size:12px !important;
+    line-height:34px !important;
+    border-radius:999px !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+
+  #toggleFavoriteListBtn,
+  #toggleConfuseListBtn{
+    width:auto !important;
+    min-width:72px !important;
+    max-width:88px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 9px !important;
+    font-size:12px !important;
+    line-height:34px !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+}
+
+@media (max-width:390px){
+  .favoriteQuickPanel .quickExamHeader,
+  .confuseQuickPanel .quickExamHeader{
+    gap:6px !important;
+  }
+
+  .favoriteQuickPanel .quickExamHeader h2,
+  .confuseQuickPanel .quickExamHeader h2{
+    font-size:24px !important;
+  }
+
+  #startFavoriteOnlyBtn,
+  #startConfuseOnlyBtn{
+    min-width:78px !important;
+    max-width:92px !important;
+    padding:0 7px !important;
+    font-size:11px !important;
+  }
+
+  #toggleFavoriteListBtn,
+  #toggleConfuseListBtn{
+    min-width:64px !important;
+    max-width:76px !important;
+    padding:0 7px !important;
+    font-size:11px !important;
   }
 }
