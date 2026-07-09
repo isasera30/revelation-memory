@@ -1136,111 +1136,78 @@ function safeExactCompare(user, answer){
 
 
 
-function makeCompareTokens(text){
-  const arr=[];
-  text=String(text||"");
-  for(let i=0;i<text.length;i++){
-    const raw=text.charAt(i);
-    if(/\s/.test(raw))continue;
-    const norm=normalizeForExam(raw);
-    if(!norm)continue;
-    arr.push({raw,norm,idx:i});
+function buildExamCharDiff(user, answer){
+  const answerOriginal=String(answer||"");
+  const userOriginal=String(user||"");
+
+  const aChars=[];
+  const aMap=[];
+  for(let i=0;i<answerOriginal.length;i++){
+    const ch=answerOriginal.charAt(i);
+    if(!/\s/.test(ch)){
+      aMap.push(i);
+      aChars.push(normalizeForExam(ch));
+    }
   }
-  return arr;
-}
 
-function compareTokensLocally(answerOriginal,userOriginal){
-  const a=makeCompareTokens(answerOriginal);
-  const u=makeCompareTokens(userOriginal);
-  const answerWrong=new Set();
-  const userWrong=new Set();
-  const n=a.length, m=u.length;
+  const uChars=[];
+  const uMap=[];
+  for(let i=0;i<userOriginal.length;i++){
+    const ch=userOriginal.charAt(i);
+    if(!/\s/.test(ch)){
+      uMap.push(i);
+      uChars.push(normalizeForExam(ch));
+    }
+  }
 
-  // 사용자가 구절의 뒷부분만 적어도 맞는 위치에 붙도록,
-  // 정답의 앞/뒤 미입력 구간은 비교 비용에서 제외한다.
+  const n=aChars.length, m=uChars.length;
   const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
-  const op=Array.from({length:n+1},()=>Array(m+1).fill(null));
+  const op=Array.from({length:n+1},()=>Array(m+1).fill(""));
 
-  for(let i=1;i<=n;i++){
-    dp[i][0]=0;
-    op[i][0]="skipLead";
-  }
-  for(let j=1;j<=m;j++){
-    dp[0][j]=j;
-    op[0][j]="insert";
-  }
+  for(let i=1;i<=n;i++){dp[i][0]=i;op[i][0]="del";}
+  for(let j=1;j<=m;j++){dp[0][j]=j;op[0][j]="ins";}
 
   for(let i=1;i<=n;i++){
     for(let j=1;j<=m;j++){
-      const same=a[i-1].norm===u[j-1].norm;
-      const diag=dp[i-1][j-1]+(same?0:1);
-      const del=dp[i-1][j]+1;
-      const ins=dp[i][j-1]+1;
-      let best=diag;
-      let bestOp=same?"equal":"replace";
-
-      // 같은 비용이면 대체보다 정답 미입력을 우선해서,
-      // 사용자가 뒷부분만 쓴 경우 앞부분이 빨강으로 오인되지 않게 한다.
-      if(del<best || (del===best && bestOp==="replace")){
-        best=del;
-        bestOp="missing";
+      if(aChars[i-1]===uChars[j-1]){
+        dp[i][j]=dp[i-1][j-1];
+        op[i][j]="eq";
+      }else{
+        const rep=dp[i-1][j-1]+1;
+        const del=dp[i-1][j]+1;
+        const ins=dp[i][j-1]+1;
+        const best=Math.min(rep,del,ins);
+        dp[i][j]=best;
+        // substitution first keeps wrong letters at the current position instead of flying to the end
+        if(best===rep)op[i][j]="rep";
+        else if(best===del)op[i][j]="del";
+        else op[i][j]="ins";
       }
-      if(ins<best){
-        best=ins;
-        bestOp="insert";
-      }
-
-      dp[i][j]=best;
-      op[i][j]=bestOp;
     }
   }
 
-  // 정답 뒤쪽 미입력도 허용하되, 같은 비용이면 더 많이 맞춘 위치를 선택한다.
-  let endI=0;
-  let bestCost=Infinity;
-  for(let i=0;i<=n;i++){
-    if(dp[i][m]<bestCost || (dp[i][m]===bestCost && i>endI)){
-      bestCost=dp[i][m];
-      endI=i;
-    }
-  }
+  const answerWrong=new Set();
+  const userWrong=new Set();
 
-  const rev=[];
-  let i=endI, j=m;
-  while(j>0){
+  let i=n,j=m;
+  while(i>0 || j>0){
     const cur=op[i][j];
-    if(cur==="equal"){
-      rev.push({type:"equal",a:a[i-1],u:u[j-1]});
+    if(cur==="eq"){
       i--; j--;
-    }else if(cur==="replace"){
-      answerWrong.add(a[i-1].idx);
-      userWrong.add(u[j-1].idx);
-      rev.push({type:"replace",a:a[i-1],u:u[j-1]});
+    }else if(cur==="rep"){
+      answerWrong.add(aMap[i-1]);
+      userWrong.add(uMap[j-1]);
       i--; j--;
-    }else if(cur==="missing"){
-      answerWrong.add(a[i-1].idx);
-      rev.push({type:"missing",a:a[i-1]});
+    }else if(cur==="del"){
+      answerWrong.add(aMap[i-1]);
       i--;
     }else{
-      userWrong.add(u[j-1].idx);
-      const pos=(i<n && a[i]) ? a[i].idx : String(answerOriginal||"").length;
-      rev.push({type:"insert",u:u[j-1],pos});
+      userWrong.add(uMap[j-1]);
       j--;
     }
   }
-  while(i>0){
-    rev.push({type:"missing",a:a[i-1]});
-    i--;
-  }
-  rev.reverse();
-  for(let k=endI;k<n;k++){
-    rev.push({type:"missing",a:a[k]});
-  }
 
-  return {answerOriginal:String(answerOriginal||""),userOriginal:String(userOriginal||""),answerWrong,userWrong,steps:rev};
-}
-function buildExamCharDiff(user, answer){
-  return compareTokensLocally(String(answer||""),String(user||""));
+  return {answerOriginal,userOriginal,answerWrong,userWrong};
 }
 
 function renderExamDiffText(original, wrongSet){
@@ -1266,6 +1233,7 @@ function markInputWrongParts(user, answer){
   const diff=buildExamCharDiff(user,answer);
   return renderExamDiffText(diff.userOriginal,diff.userWrong);
 }
+
 
 function removeWrongQuestion(q){
   if(!state.lastWrong)state.lastWrong=[];
@@ -1434,7 +1402,7 @@ function submit(){
     state.currentFeedbackTitle=ok?"✅ 정답입니다.":"❌ 오답입니다.";
     state.currentFeedbackHTML=ok
       ? "다음 문제로 넘어가세요."
-      : `<b>정답</b><br>${markWrongParts(user,target)}<br><br><b>입력</b><br>${markInputWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
+      : `<b>정답</b><br>${markWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
     renderCollapsibleBox(el.feedback,"feedback",state.currentFeedbackTitle,state.currentFeedbackHTML,state.feedbackCollapsed);
 
     // 오답 후에도 다시 입력하고 재채점할 수 있도록 제출 버튼은 비활성화하지 않습니다.
@@ -1858,64 +1826,123 @@ function normalizeTypingCompareText(text){
   return String(text||"").replace(/\s+/g,"");
 }
 function typingPracticeCompareHTML(answer,input){
-  const answerOriginal=String(answer||"");
-  const userOriginal=String(input||"");
-  if(!answerOriginal)return "<span class='note'>정답 내용이 없습니다.</span>";
-
-  const diff=compareTokensLocally(answerOriginal,userOriginal);
-  const steps=diff.steps;
-  let html="";
-  let lastAnswerIndex=0;
-
-  function appendAnswerGapUntil(originalIndex){
-    while(lastAnswerIndex<originalIndex){
-      html+=esc(answerOriginal.charAt(lastAnswerIndex));
-      lastAnswerIndex++;
-    }
-  }
-  function appendAnswerToken(token,className){
-    appendAnswerGapUntil(token.idx);
-    html+=`<span class="${className}">${esc(token.raw)}</span>`;
-    lastAnswerIndex=token.idx+1;
-  }
-  function appendWrongUserToken(token){
-    html+=`<span class="typingWrong">${esc(token.raw)}</span>`;
-  }
-
-  function nextAnswerIndex(from){
-    for(let j=from+1;j<steps.length;j++){
-      if(steps[j].a)return steps[j].a.idx;
-    }
-    return answerOriginal.length;
-  }
-  function userGapAfter(token){
-    let out="";
-    let k=token.idx+1;
-    while(k<userOriginal.length && /\s/.test(userOriginal.charAt(k))){
-      out+=userOriginal.charAt(k);
+  const originalAnswer=String(answer||"");
+  const originalInput=String(input||"");
+  const answerChars=[];
+  const inputItems=[];
+  for(let i=0;i<originalInput.length;i++){
+    const ch=originalInput.charAt(i);
+    if(/\s/.test(ch))continue;
+    let trailing="";
+    let k=i+1;
+    while(k<originalInput.length && /\s/.test(originalInput.charAt(k))){
+      trailing+=originalInput.charAt(k);
       k++;
     }
-    return out;
+    inputItems.push({ch:ch,trailing:trailing});
+  }
+  const inputChars=inputItems.map(x=>x.ch);
+  for(let i=0;i<originalAnswer.length;i++){
+    const ch=originalAnswer.charAt(i);
+    if(!/\s/.test(ch))answerChars.push({ch:ch,index:i});
   }
 
-  for(let si=0;si<steps.length;si++){
-    const step=steps[si];
-    if(step.type==="equal"){
-      appendAnswerToken(step.a,"typingCorrect");
-    }else if(step.type==="missing"){
-      appendAnswerToken(step.a,"typingMissing");
-    }else if(step.type==="insert"){
-      appendAnswerGapUntil(typeof step.pos==="number" ? step.pos : nextAnswerIndex(si));
-      appendWrongUserToken(step.u);
-      html+=esc(userGapAfter(step.u));
-    }else if(step.type==="replace"){
-      appendAnswerGapUntil(step.a.idx);
-      appendWrongUserToken(step.u);
-      lastAnswerIndex=step.a.idx+1;
+  const aLen=answerChars.length;
+  const bLen=inputChars.length;
+  const dp=Array.from({length:aLen+1},()=>Array(bLen+1).fill(0));
+  for(let i=aLen-1;i>=0;i--){
+    dp[i][bLen]=dp[i+1][bLen]+1;
+  }
+  for(let j=bLen-1;j>=0;j--){
+    dp[aLen][j]=dp[aLen][j+1]+1;
+  }
+  for(let i=aLen-1;i>=0;i--){
+    for(let j=bLen-1;j>=0;j--){
+      const matchCost=answerChars[i].ch===inputChars[j] ? dp[i+1][j+1] : Infinity;
+      const wrongCost=dp[i+1][j+1]+1;
+      const missingCost=dp[i+1][j]+1;
+      const extraCost=dp[i][j+1]+1;
+      dp[i][j]=Math.min(matchCost,wrongCost,missingCost,extraCost);
     }
   }
 
-  appendAnswerGapUntil(answerOriginal.length);
+  function inputCharAppearsAhead(i,j){
+    const target=inputChars[j];
+    if(!target)return false;
+    for(let k=i+1;k<aLen;k++){
+      if(answerChars[k].ch===target)return true;
+    }
+    return false;
+  }
+  function answerCharAppearsAhead(i,j){
+    const target=answerChars[i]?.ch;
+    if(!target)return false;
+    for(let k=j+1;k<bLen;k++){
+      if(inputChars[k]===target)return true;
+    }
+    return false;
+  }
+  function sameRunLength(i,j){
+    let len=0;
+    while(i+len<aLen && j+len<bLen && answerChars[i+len].ch===inputChars[j+len])len++;
+    return len;
+  }
+  function hasBetterSameRunAhead(i,j){
+    const current=sameRunLength(i,j);
+    for(let k=i+1;k<aLen;k++){
+      if(answerChars[k].ch===inputChars[j] && sameRunLength(k,j)>current)return true;
+    }
+    return false;
+  }
+
+  const classByIndex={};
+  const extraBefore={};
+  let i=0;
+  let j=0;
+  while(i<aLen || j<bLen){
+    if(i<aLen && j<bLen && answerChars[i].ch===inputChars[j] && dp[i][j]===dp[i+1][j+1] && !hasBetterSameRunAhead(i,j)){
+      classByIndex[answerChars[i].index]="typingCorrect";
+      i++;
+      j++;
+      continue;
+    }
+
+    const missingCost=i<aLen ? dp[i+1][j]+1 : Infinity;
+    const extraCost=j<bLen ? dp[i][j+1]+1 : Infinity;
+    const wrongCost=(i<aLen && j<bLen) ? dp[i+1][j+1]+1 : Infinity;
+    const best=Math.min(missingCost,extraCost,wrongCost);
+
+    if(i<aLen && missingCost===best && (j>=bLen || inputCharAppearsAhead(i,j) || wrongCost!==best)){
+      classByIndex[answerChars[i].index]="typingMissing";
+      i++;
+    }else if(j<bLen && extraCost===best && (i>=aLen || answerCharAppearsAhead(i,j))){
+      const pos=i<aLen ? answerChars[i].index : originalAnswer.length;
+      extraBefore[pos]=(extraBefore[pos]||"")+inputChars[j]+(inputItems[j]?.trailing||"");
+      j++;
+    }else if(i<aLen && j<bLen && wrongCost===best){
+      classByIndex[answerChars[i].index]="typingWrong";
+      i++;
+      j++;
+    }else if(i<aLen){
+      classByIndex[answerChars[i].index]="typingMissing";
+      i++;
+    }else{
+      extraBefore[originalAnswer.length]=(extraBefore[originalAnswer.length]||"")+inputChars[j]+(inputItems[j]?.trailing||"");
+      j++;
+    }
+  }
+
+  let html="";
+  for(let idx=0;idx<originalAnswer.length;idx++){
+    if(extraBefore[idx])html+=`<span class="typingExtra">${esc(extraBefore[idx])}</span>`;
+    const ch=originalAnswer.charAt(idx);
+    const cls=classByIndex[idx];
+    html+=cls ? `<span class="${cls}">${esc(ch)}</span>` : esc(ch);
+  }
+  if(extraBefore[originalAnswer.length]){
+    html+=`<span class="typingExtra">${esc(extraBefore[originalAnswer.length])}</span>`;
+  }
+
   return html || "<span class='note'>입력한 내용이 없습니다.</span>";
 }
 window.openTypingPracticeBox=function(kq){
@@ -2088,9 +2115,11 @@ function renderBookmarks(){
   if(!el.bookmarkList)return;
   const s=settings();
   const list=s.bookmarks||[];
-  el.bookmarkList.innerHTML=list.length
-    ? `<h3 class="subTitle">📌 저장한 책갈피</h3>` + list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions prayerActionBtns"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
+  const body=list.length
+    ? list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions prayerActionBtns"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
     : "";
+  el.bookmarkList.innerHTML=`<div class="quickExamHeader"><h3 class="subTitle">📌 저장한 책갈피</h3><button id="toggleBookmarkListBtn" type="button" class="secondary" onclick="toggleBookmarkListCollapse()">▲ 접기</button></div><div id="bookmarkListContent">${body}</div>`;
+  applyBookmarkFavoriteCollapse();
 }
 
 
@@ -2359,6 +2388,7 @@ function renderLists(){
       </div>`;
     }).join("") || "<p class='note'>헷갈림 노트가 비어 있습니다.</p>";
   }
+  applyBookmarkFavoriteCollapse();
 }
 window.resolveConfuse=function(kq){const m=mem();if(m[kq]){m[kq].resolved=true;setMem(m);renderAll()}}
 
@@ -2918,7 +2948,7 @@ function resetStudyDataOnly(){
 }
 
 
-const APP_VERSION="5.72-unified-diff-fix";
+const APP_VERSION="5.68-exam-char-diff";
 
 function formatDateTime(ts){
   if(!ts)return "";
@@ -3134,6 +3164,42 @@ function applyRecordPanelCollapses(){
   applyPanelCollapse("records","recordsContent","toggleRecordsBtn");
 }
 
+function applyBookmarkFavoriteCollapse(){
+  const bookmarkCollapsed=getPanelCollapsed("bookmarkList");
+  const bookmarkContent=document.getElementById("bookmarkListContent");
+  const bookmarkBtn=document.getElementById("toggleBookmarkListBtn");
+  if(bookmarkContent)bookmarkContent.classList.toggle("hidden",bookmarkCollapsed);
+  if(bookmarkBtn)bookmarkBtn.textContent=bookmarkCollapsed?"▼ 펼치기":"▲ 접기";
+
+  const favoriteCollapsed=getPanelCollapsed("favoriteList");
+  const favoriteContent=document.getElementById("favoriteList");
+  const favoriteBtn=document.getElementById("toggleFavoriteListBtn");
+  if(favoriteContent)favoriteContent.classList.toggle("hidden",favoriteCollapsed);
+  if(favoriteBtn)favoriteBtn.textContent=favoriteCollapsed?"▼ 펼치기":"▲ 접기";
+
+  const confuseCollapsed=getPanelCollapsed("confuseList");
+  const confuseContent=document.getElementById("confuseList");
+  const confuseBtn=document.getElementById("toggleConfuseListBtn");
+  if(confuseContent)confuseContent.classList.toggle("hidden",confuseCollapsed);
+  if(confuseBtn)confuseBtn.textContent=confuseCollapsed?"▼ 펼치기":"▲ 접기";
+}
+
+window.toggleBookmarkListCollapse=function(){
+  setPanelCollapsed("bookmarkList",!getPanelCollapsed("bookmarkList"));
+  applyBookmarkFavoriteCollapse();
+}
+
+function toggleFavoriteListCollapse(){
+  setPanelCollapsed("favoriteList",!getPanelCollapsed("favoriteList"));
+  applyBookmarkFavoriteCollapse();
+}
+
+function toggleConfuseListCollapse(){
+  setPanelCollapsed("confuseList",!getPanelCollapsed("confuseList"));
+  applyBookmarkFavoriteCollapse();
+}
+
+
 
 
 function recordQuestionCount(r){
@@ -3299,6 +3365,7 @@ function renderAll(){
   renderReadingHome();
   loadReadingTimer();renderReading();renderBookmarks();
   renderLists();
+  applyBookmarkFavoriteCollapse();
   renderPrayer();
   renderCalendar();
   renderRecords();
@@ -3343,7 +3410,9 @@ if(document.getElementById("randomReviewBtn"))document.getElementById("randomRev
   startRandomReviewExam();
 };
 if(document.getElementById("startFavoriteOnlyBtn"))document.getElementById("startFavoriteOnlyBtn").onclick=startFavoriteOnlyExam;
+if(document.getElementById("toggleFavoriteListBtn"))document.getElementById("toggleFavoriteListBtn").onclick=toggleFavoriteListCollapse;
 if(document.getElementById("startConfuseOnlyBtn"))document.getElementById("startConfuseOnlyBtn").onclick=startConfuseOnlyExam;
+if(document.getElementById("toggleConfuseListBtn"))document.getElementById("toggleConfuseListBtn").onclick=toggleConfuseListCollapse;
 if(document.getElementById("startWrongNoteBtn"))document.getElementById("startWrongNoteBtn").onclick=startWrongNoteExam;
 if(document.getElementById("toggleAchievementBtn"))document.getElementById("toggleAchievementBtn").onclick=()=>{
   setAchievementTimelineCollapsed("achievement",!getAchievementTimelineCollapsed("achievement"));

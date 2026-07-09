@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-72-unified-diff-fix-typing-compare-only";
+const CACHE="gyesirok-memory-v5-68-exam-char-diff";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {
