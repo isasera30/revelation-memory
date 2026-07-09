@@ -2449,3 +2449,38 @@ body.dark .typingPracticeSaved{color:#cbb8a1}
     flex:0 0 auto !important;
   }
 }
+
+/* v5.69 - 모바일 즐겨찾기/헷갈림 시험 버튼 크기 보정 */
+@media(max-width:760px){
+  .quickExamHeader{
+    flex-direction:row !important;
+    align-items:center !important;
+    gap:8px !important;
+  }
+  .quickExamHeader .topActions{
+    width:auto !important;
+    flex:0 0 auto !important;
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:flex-end !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+  }
+  .quickExamHeader .topActions button{
+    width:auto !important;
+    min-width:0 !important;
+    padding:8px 10px !important;
+    font-size:13px !important;
+    line-height:1.2 !important;
+    white-space:nowrap !important;
+  }
+}
+@media(max-width:430px){
+  .quickExamHeader .topActions{
+    gap:6px !important;
+  }
+  .quickExamHeader .topActions button{
+    padding:7px 8px !important;
+    font-size:12px !important;
+  }
+}
