@@ -2449,3 +2449,214 @@ body.dark .typingPracticeSaved{color:#cbb8a1}
     flex:0 0 auto !important;
   }
 }
+
+
+
+
+
+
+
+/* v5.69 - mobile/tablet preview: 즐겨찾기/헷갈림 헤더 버튼 위치 및 크기 고정 */
+@media (max-width:800px){
+  .favoriteQuickPanel .quickExamHeader,
+  .confuseQuickPanel .quickExamHeader{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:10px !important;
+  }
+
+  .favoriteQuickPanel .quickExamHeader .topActions,
+  .confuseQuickPanel .quickExamHeader .topActions{
+    width:100% !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+  }
+
+  #startFavoriteOnlyBtn,
+  #startConfuseOnlyBtn{
+    width:auto !important;
+    min-width:86px !important;
+    max-width:104px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 9px !important;
+    font-size:12px !important;
+    line-height:34px !important;
+    border-radius:999px !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+
+  #toggleFavoriteListBtn,
+  #toggleConfuseListBtn{
+    width:auto !important;
+    min-width:72px !important;
+    max-width:88px !important;
+    height:34px !important;
+    min-height:34px !important;
+    padding:0 9px !important;
+    font-size:12px !important;
+    line-height:34px !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+}
+
+
+
+
+
+
+
+
+
+/* v5.69 - mobile/tablet preview: 책갈피 목록 태블릿 줄바꿈 복구 */
+@media (max-width:800px){
+  #bookmarkList .bookmarkItem{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+  }
+
+  #bookmarkList .bookmarkItem > div:first-child{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+    min-width:max-content !important;
+  }
+
+  #bookmarkList .bookmarkItem .smallBtns{
+    width:auto !important;
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    gap:10px !important;
+    margin-top:0 !important;
+    flex:0 0 auto !important;
+  }
+
+  #bookmarkList .bookmarkItem .smallBtns button{
+    width:96px !important;
+    min-width:96px !important;
+    max-width:96px !important;
+    flex:0 0 96px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 10px !important;
+    font-size:13px !important;
+    line-height:42px !important;
+    margin:0 !important;
+    border-radius:999px !important;
+  }
+}
+
+/* v5.69 - mobile/tablet: 즐겨찾기/헷갈림 목록 버튼 정렬 최종 보정 */
+@media (max-width:800px){
+  #favoriteList .favItem,
+  #confuseList .favItem{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:14px !important;
+  }
+
+  #favoriteList .favItem .favText,
+  #confuseList .favItem .favText{
+    width:100% !important;
+  }
+
+  #favoriteList .favItem .smallBtns,
+  #confuseList .favItem .smallBtns{
+    width:100% !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+    flex-wrap:nowrap !important;
+    margin-top:0 !important;
+  }
+
+  /* 즐겨찾기 절: 모바일/태블릿 모두 오른쪽 정렬 */
+  #favoriteList .favItem .smallBtns{
+    justify-content:flex-end !important;
+  }
+
+  /* 헷갈림 노트: 태블릿은 오른쪽 정렬 */
+  #confuseList .favItem .smallBtns{
+    justify-content:flex-end !important;
+  }
+
+  #favoriteList .favItem .smallBtns button,
+  #confuseList .favItem .smallBtns button{
+    width:92px !important;
+    min-width:92px !important;
+    max-width:92px !important;
+    flex:0 0 92px !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 8px !important;
+    font-size:13px !important;
+    line-height:42px !important;
+    border-radius:999px !important;
+    margin:0 !important;
+  }
+}
+
+/* 모바일: 헷갈림 노트만 가운데 정렬 유지 */
+@media (max-width:520px){
+  #confuseList .favItem .smallBtns{
+    justify-content:center !important;
+  }
+}
+
+@media (max-width:390px){
+  #favoriteList .favItem .smallBtns,
+  #confuseList .favItem .smallBtns{
+    gap:8px !important;
+  }
+
+  #favoriteList .favItem .smallBtns button,
+  #confuseList .favItem .smallBtns button{
+    width:84px !important;
+    min-width:84px !important;
+    max-width:84px !important;
+    flex-basis:84px !important;
+    font-size:12px !important;
+  }
+}
+
+/* v5.69 - 모바일/태블릿 오늘의 복습 3개 버튼 한 줄 고정 */
+@media (max-width:1024px){
+  #todayReviewPanel .sectionTitle .actions.compactActions{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:8px !important;
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  #todayReviewPanel .sectionTitle .actions.compactActions #toggleTodayReviewBtn,
+  #todayReviewPanel .sectionTitle .actions.compactActions #startReviewBtn,
+  #todayReviewPanel .sectionTitle .actions.compactActions #randomReviewBtn{
+    display:inline-flex !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:38px !important;
+    min-height:38px !important;
+    padding:0 8px !important;
+    font-size:12px !important;
+    line-height:38px !important;
+    margin:0 !important;
+    white-space:nowrap !important;
+    flex:1 1 0 !important;
+  }
+}
