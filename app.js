@@ -285,29 +285,72 @@ function renderMemoryChapterCheck(){
 function renderTodayMemorized(){
   const box=document.getElementById("todayMemorizedList");
   if(!box)return;
-  const today=dateISO();
-  const items=verses().filter(v=>(mem()[key(v)]||{}).manualMemorizedAt===today)
-    .sort((a,b)=>verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse));
-
-  if(!items.length){
-    box.innerHTML=`<div class="item"><b>📅 오늘 암기한 구절</b><br><span class="note">아직 오늘 직접 체크한 구절이 없습니다.</span></div>`;
-    return;
-  }
-
-  box.innerHTML=`<div class="item"><b>📅 오늘 암기한 구절 ${items.length}절</b><br>${items.map(v=>`<span class="badge">계 ${v.chapter}:${v.verse}</span>`).join(" ")}</div>`;
+  box.innerHTML="";
+  box.classList.add("hidden");
 }
 
 
+
+
+function groupConsecutiveTodayVerses(items){
+  const sorted=[...(items||[])].sort((a,b)=>
+    verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse)
+  );
+  const groups=[];
+
+  sorted.forEach(v=>{
+    const last=groups[groups.length-1];
+    if(last && last.chapter===v.chapter && v.verse===last.end+1){
+      last.end=v.verse;
+    }else{
+      groups.push({
+        chapter:v.chapter,
+        start:v.verse,
+        end:v.verse
+      });
+    }
+  });
+
+  return groups;
+}
+
+function renderTodayMemoryPills(items){
+  const groups=groupConsecutiveTodayVerses(items);
+  if(!groups.length){
+    return `<div class="todayMemoryEmpty">아직 오늘 직접 체크한 구절이 없습니다.</div>`;
+  }
+
+  return `<div class="todayMemoryPills">${
+    groups.map(g=>{
+      const label=g.start===g.end
+        ? `계 ${g.chapter}:${g.start}`
+        : `계 ${g.chapter}:${g.start}~${g.end}`;
+      return `<button type="button"
+        class="todayMemoryPill"
+        onclick="openVerseFromList(${g.chapter},${g.start})">${label}</button>`;
+    }).join("")
+  }</div>`;
+}
 
 function renderDashboard(){
   const all=verses(), m=mem();
   const mastered=all.filter(isVerseMemorized).length;
   const rate=all.length?Math.round(mastered/all.length*1000)/10:0;
+  const today=dateISO();
+  const todayItems=all.filter(v=>(m[key(v)]||{}).manualMemorizedAt===today)
+    .sort((a,b)=>verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse));
+  const todayCard=`
+    <div class="card todayMemorySummaryCard">
+      <div class="todayMemoryTitle">📅 오늘 암기한 구절 <span class="todayMemoryCount">${todayItems.length}절</span></div>
+      ${renderTodayMemoryPills(todayItems)}
+    </div>`;
 
-  el.dashboard.innerHTML=card([
-    ["🧠 전체 암기",mastered+" / 404절"],
-    ["📈 전체 달성률",rate+"%"]
-  ]);
+  el.dashboard.innerHTML=
+    card([
+      ["🧠 전체 암기",mastered+" / 404절"],
+      ["📈 전체 달성률",rate+"%"]
+    ])+
+    todayCard;
 
   el.progressBar.style.width=rate+"%";
 
@@ -552,8 +595,10 @@ function getSmartReviewVerses(base=null){
   return computed;
 }
 
+function ensureExamHomeCategoryVisible(){ if(window.ensureExamHomeCategoryVisible) window.ensureExamHomeCategoryVisible(); }
 function startQuestionSet(qs, label="복습"){
   if(!qs.length){alert("출제할 구절이 없습니다.");return;}
+  ensureExamHomeCategoryVisible();
   el.modeSelect.value="write";
   state={qs:qs.slice(),i:0,correct:0,wrong:0,answers:[],answerByIndex:{},start:Date.now(),hint:false,lastWrong:[],hintCollapsed:false,feedbackCollapsed:false,hintStep:0,blankMap:{},lastCombo:null,recordId:null,reviewTargetDate:null};
   const bulkPanel=document.getElementById("bulkExamPanel");
@@ -792,8 +837,36 @@ function applyQuestionHintMode(q){
   if(el.hintBtn)el.hintBtn.classList.remove("hidden");
 }
 
+
+function guaranteedShuffle(list){
+  const original=[...(list||[])];
+  const arr=[...original];
+
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+
+  const sameOrder=arr.length>1 && arr.every((v,i)=>
+    v.chapter===original[i].chapter && v.verse===original[i].verse
+  );
+
+  // 무작위 결과가 우연히 원래 순서와 같으면 반드시 순서를 변경합니다.
+  if(sameOrder){
+    arr.push(arr.shift());
+  }
+
+  return arr;
+}
+
+
 function startBulkExam(){
-  const qs=assignExamInstances(getExamBasePool());
+  ensureExamHomeCategoryVisible();
+  const basePool=getExamBasePool();
+  // 이 함수는 "전체 한 번에 작성"에서만 호출됩니다.
+  // 장절 맞히기(ref)는 정답 예측 방지를 위해 반드시 비순차 출제합니다.
+  const orderedPool=el.modeSelect.value==="ref" ? guaranteedShuffle(basePool) : basePool;
+  const qs=assignExamInstances(orderedPool);
   if(!qs.length){
     alert(el.rangeSelect.value==="custom"?"시작 범위가 종료 범위보다 앞서야 합니다.":"출제할 구절이 없습니다.");
     return;
@@ -1020,6 +1093,7 @@ function pickQuestions(){
 }
 function startExam(){
   if(!verses().length){alert("먼저 본문을 등록해주세요.");return}
+  ensureExamHomeCategoryVisible();
   if(examOrderMode()==="bulk"){startBulkExam();return;}
   state={qs:[],i:0,correct:0,wrong:0,answers:[],answerByIndex:{},start:Date.now(),hint:false,lastWrong:[],hintCollapsed:false,feedbackCollapsed:false,hintStep:0,blankMap:{},lastCombo:null,recordId:null,reviewTargetDate:el.modeSelect.value==="review"?getPendingReviewDate():null,examAdjustedMessage:""};
   state.qs=pickQuestions();
@@ -1140,75 +1214,280 @@ function buildExamCharDiff(user, answer){
   const answerOriginal=String(answer||"");
   const userOriginal=String(user||"");
 
-  const aChars=[];
-  const aMap=[];
-  for(let i=0;i<answerOriginal.length;i++){
-    const ch=answerOriginal.charAt(i);
-    if(!/\s/.test(ch)){
-      aMap.push(i);
-      aChars.push(normalizeForExam(ch));
+  function tokenize(original){
+    const chars=[];
+    const map=[];
+    for(let i=0;i<original.length;i++){
+      const ch=original.charAt(i);
+      if(/\s/.test(ch)) continue;
+      const normalized=normalizeForExam(ch);
+      if(!normalized) continue;
+      chars.push(normalized);
+      map.push(i);
     }
+    return {chars,map};
   }
 
-  const uChars=[];
-  const uMap=[];
-  for(let i=0;i<userOriginal.length;i++){
-    const ch=userOriginal.charAt(i);
-    if(!/\s/.test(ch)){
-      uMap.push(i);
-      uChars.push(normalizeForExam(ch));
-    }
-  }
-
-  const n=aChars.length, m=uChars.length;
-  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
-  const op=Array.from({length:n+1},()=>Array(m+1).fill(""));
-
-  for(let i=1;i<=n;i++){dp[i][0]=i;op[i][0]="del";}
-  for(let j=1;j<=m;j++){dp[0][j]=j;op[0][j]="ins";}
-
-  for(let i=1;i<=n;i++){
-    for(let j=1;j<=m;j++){
-      if(aChars[i-1]===uChars[j-1]){
-        dp[i][j]=dp[i-1][j-1];
-        op[i][j]="eq";
-      }else{
-        const rep=dp[i-1][j-1]+1;
-        const del=dp[i-1][j]+1;
-        const ins=dp[i][j-1]+1;
-        const best=Math.min(rep,del,ins);
-        dp[i][j]=best;
-        // substitution first keeps wrong letters at the current position instead of flying to the end
-        if(best===rep)op[i][j]="rep";
-        else if(best===del)op[i][j]="del";
-        else op[i][j]="ins";
-      }
-    }
-  }
-
+  const A=tokenize(answerOriginal);
+  const U=tokenize(userOriginal);
+  const a=A.chars, u=U.chars;
+  const n=a.length, m=u.length;
   const answerWrong=new Set();
   const userWrong=new Set();
 
-  let i=n,j=m;
-  while(i>0 || j>0){
+  if(m===0){
+    A.map.forEach(idx=>answerWrong.add(idx));
+    return {answerOriginal,userOriginal,answerWrong,userWrong};
+  }
+
+  function addAnswerWrong(ai){
+    if(ai>=0 && ai<n) answerWrong.add(A.map[ai]);
+  }
+  function addUserWrong(ui){
+    if(ui>=0 && ui<m) userWrong.add(U.map[ui]);
+  }
+
+  // Standard global alignment for two bounded segments.
+  function alignSegments(aStart,aEnd,uStart,uEnd){
+    const an=aEnd-aStart, um=uEnd-uStart;
+    const dp=Array.from({length:an+1},()=>Array(um+1).fill(0));
+    const op=Array.from({length:an+1},()=>Array(um+1).fill(""));
+
+    for(let i=1;i<=an;i++){ dp[i][0]=i; op[i][0]="del"; }
+    for(let j=1;j<=um;j++){ dp[0][j]=j; op[0][j]="ins"; }
+
+    for(let i=1;i<=an;i++){
+      for(let j=1;j<=um;j++){
+        const same=a[aStart+i-1]===u[uStart+j-1];
+        const diag=dp[i-1][j-1]+(same?0:1);
+        const del=dp[i-1][j]+1;
+        const ins=dp[i][j-1]+1;
+        const best=Math.min(diag,del,ins);
+        dp[i][j]=best;
+
+        // Prefer exact/context-preserving diagonal, then deletion, then insertion.
+        if(best===diag) op[i][j]=same?"eq":"rep";
+        else if(best===del) op[i][j]="del";
+        else op[i][j]="ins";
+      }
+    }
+
+    let i=an,j=um;
+    while(i>0 || j>0){
+      const cur=op[i][j];
+      if(cur==="eq"){
+        i--;j--;
+      }else if(cur==="rep"){
+        addAnswerWrong(aStart+i-1);
+        addUserWrong(uStart+j-1);
+        i--;j--;
+      }else if(cur==="del"){
+        addAnswerWrong(aStart+i-1);
+        i--;
+      }else{
+        addUserWrong(uStart+j-1);
+        j--;
+      }
+    }
+    return dp[an][um];
+  }
+
+  // Longest exact common substring candidates.
+  function longestExactAnchors(){
+    const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+    let maxLen=0;
+    const candidates=[];
+    for(let i=1;i<=n;i++){
+      for(let j=1;j<=m;j++){
+        if(a[i-1]===u[j-1]){
+          dp[i][j]=dp[i-1][j-1]+1;
+          if(dp[i][j]>maxLen){
+            maxLen=dp[i][j];
+            candidates.length=0;
+          }
+          if(dp[i][j]===maxLen && maxLen>0){
+            candidates.push({
+              aStart:i-maxLen,
+              uStart:j-maxLen,
+              len:maxLen
+            });
+          }
+        }
+      }
+    }
+    return {maxLen,candidates};
+  }
+
+  const exact=longestExactAnchors();
+
+  // Use an exact anchor when it has enough context.
+  // Length 2 is allowed only when the whole user input is very short.
+  const minAnchor=(m<=3?1:Math.min(3,m));
+  if(exact.maxLen>=minAnchor){
+    let best=null;
+    for(const c of exact.candidates){
+      // Context score: distance consistency + left preference on ties.
+      const leftDistance=Math.abs(c.aStart-c.uStart);
+      const rightDistance=Math.abs((n-(c.aStart+c.len))-(m-(c.uStart+c.len)));
+      const score=leftDistance+rightDistance;
+      if(!best || score<best.score || (score===best.score && c.aStart<best.aStart)){
+        best={...c,score};
+      }
+    }
+
+    alignSegments(0,best.aStart,0,best.uStart);
+    alignSegments(best.aStart+best.len,n,best.uStart+best.len,m);
+    return {answerOriginal,userOriginal,answerWrong,userWrong};
+  }
+
+  // Fallback: semi-global alignment over the answer.
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  const op=Array.from({length:n+1},()=>Array(m+1).fill(""));
+
+  for(let i=1;i<=n;i++){ dp[i][0]=0; op[i][0]="skipA"; }
+  for(let j=1;j<=m;j++){ dp[0][j]=j; op[0][j]="ins"; }
+
+  for(let i=1;i<=n;i++){
+    for(let j=1;j<=m;j++){
+      const same=a[i-1]===u[j-1];
+      const diag=dp[i-1][j-1]+(same?0:1);
+      const del=dp[i-1][j]+1;
+      const ins=dp[i][j-1]+1;
+      const best=Math.min(diag,del,ins);
+      dp[i][j]=best;
+      if(best===diag) op[i][j]=same?"eq":"rep";
+      else if(best===del) op[i][j]="del";
+      else op[i][j]="ins";
+    }
+  }
+
+  let endI=0,bestCost=Infinity;
+  for(let i=0;i<=n;i++){
+    if(dp[i][m]<bestCost){
+      bestCost=dp[i][m];
+      endI=i;
+    }
+  }
+
+  let i=endI,j=m;
+  while(j>0){
     const cur=op[i][j];
     if(cur==="eq"){
-      i--; j--;
+      i--;j--;
     }else if(cur==="rep"){
-      answerWrong.add(aMap[i-1]);
-      userWrong.add(uMap[j-1]);
-      i--; j--;
+      addAnswerWrong(i-1);
+      addUserWrong(j-1);
+      i--;j--;
     }else if(cur==="del"){
-      answerWrong.add(aMap[i-1]);
+      addAnswerWrong(i-1);
       i--;
     }else{
-      userWrong.add(uMap[j-1]);
+      addUserWrong(j-1);
       j--;
     }
   }
 
+  const startI=i;
+  for(let k=0;k<startI;k++) addAnswerWrong(k);
+  for(let k=endI;k<n;k++) addAnswerWrong(k);
+
   return {answerOriginal,userOriginal,answerWrong,userWrong};
 }
+
+
+function runScoringEngineTests(){
+  const cases=[
+    {
+      name:"정확히 일치",
+      answer:"예수 그리스도의 계시라",
+      user:"예수 그리스도의 계시라",
+      expectUserWrong:0,
+      expectAnswerWrong:0
+    },
+    {
+      name:"앞부분만 입력",
+      answer:"예수 그리스도의 계시라 이는 하나님이 그에게 주사",
+      user:"예수 그리스도의 계시라",
+      expectUserWrong:0,
+      minAnswerWrong:1
+    },
+    {
+      name:"뒷부분만 입력",
+      answer:"예수 그리스도의 계시라 이는 하나님이 그에게 주사",
+      user:"이는 하나님이 그에게 주사",
+      expectUserWrong:0,
+      minAnswerWrong:1
+    },
+    {
+      name:"중간 부분만 입력",
+      answer:"예수 그리스도의 계시라 이는 하나님이 그에게 주사",
+      user:"계시라 이는 하나님이",
+      expectUserWrong:0,
+      minAnswerWrong:1
+    },
+    {
+      name:"글자 추가",
+      answer:"예수 그리스도의 증거",
+      user:"예수 그리스도님의 증거",
+      minUserWrong:1
+    },
+    {
+      name:"글자 삭제",
+      answer:"예수 그리스도의 증거",
+      user:"예수 그리스도 증거",
+      minAnswerWrong:1
+    },
+    {
+      name:"글자 변경",
+      answer:"예수 그리스도의 증거",
+      user:"예수 그리스도의 증명",
+      minUserWrong:1,
+      minAnswerWrong:1
+    },
+    {
+      name:"반복 단어 문맥",
+      answer:"예수 그리스도의 계시라 이는 하나님이 그에게 주사",
+      user:"예수 그리스도의 계시라 이는 하나님이 그",
+      expectUserWrong:0,
+      minAnswerWrong:1
+    },
+    {
+      name:"띄어쓰기 차이",
+      answer:"예수 그리스도의 계시라",
+      user:"예수그리스도의계시라",
+      expectUserWrong:0,
+      expectAnswerWrong:0
+    },
+    {
+      name:"빈 입력",
+      answer:"예수 그리스도의 계시라",
+      user:"",
+      expectUserWrong:0,
+      minAnswerWrong:1
+    }
+  ];
+
+  const results=cases.map(tc=>{
+    const d=buildExamCharDiff(tc.user,tc.answer);
+    const uw=d.userWrong.size;
+    const aw=d.answerWrong.size;
+    let pass=true;
+    if(tc.expectUserWrong!=null) pass=pass && uw===tc.expectUserWrong;
+    if(tc.expectAnswerWrong!=null) pass=pass && aw===tc.expectAnswerWrong;
+    if(tc.minUserWrong!=null) pass=pass && uw>=tc.minUserWrong;
+    if(tc.minAnswerWrong!=null) pass=pass && aw>=tc.minAnswerWrong;
+    return {name:tc.name,pass,userWrong:uw,answerWrong:aw};
+  });
+
+  const passed=results.filter(x=>x.pass).length;
+  const report={passed,total:results.length,results};
+  if(typeof console!=="undefined"){
+    console.table(results);
+    console.log(`Scoring engine tests: ${passed}/${results.length} passed`);
+  }
+  return report;
+}
+window.runScoringEngineTests=runScoringEngineTests;
 
 function renderExamDiffText(original, wrongSet){
   if(!String(original||"").length)return esc("(빈칸)");
@@ -1402,7 +1681,7 @@ function submit(){
     state.currentFeedbackTitle=ok?"✅ 정답입니다.":"❌ 오답입니다.";
     state.currentFeedbackHTML=ok
       ? "다음 문제로 넘어가세요."
-      : `<b>정답</b><br>${markWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
+      : `<b>내 입력</b><br>${markInputWrongParts(user,target)}<br><br><b>정답</b><br>${markWrongParts(user,target)}<br><br><span class="note">수정해서 다시 정답 제출을 누르면 재채점됩니다.</span>`;
     renderCollapsibleBox(el.feedback,"feedback",state.currentFeedbackTitle,state.currentFeedbackHTML,state.feedbackCollapsed);
 
     // 오답 후에도 다시 입력하고 재채점할 수 있도록 제출 버튼은 비활성화하지 않습니다.
@@ -1828,123 +2107,332 @@ function normalizeTypingCompareText(text){
 function typingPracticeCompareHTML(answer,input){
   const originalAnswer=String(answer||"");
   const originalInput=String(input||"");
-  const answerChars=[];
-  const inputItems=[];
-  for(let i=0;i<originalInput.length;i++){
-    const ch=originalInput.charAt(i);
-    if(/\s/.test(ch))continue;
-    let trailing="";
-    let k=i+1;
-    while(k<originalInput.length && /\s/.test(originalInput.charAt(k))){
-      trailing+=originalInput.charAt(k);
-      k++;
+
+  function compact(text){
+    const out=[];
+    for(let i=0;i<text.length;i++){
+      const ch=text.charAt(i);
+      if(!/\s/.test(ch))out.push({ch,index:i});
     }
-    inputItems.push({ch:ch,trailing:trailing});
-  }
-  const inputChars=inputItems.map(x=>x.ch);
-  for(let i=0;i<originalAnswer.length;i++){
-    const ch=originalAnswer.charAt(i);
-    if(!/\s/.test(ch))answerChars.push({ch:ch,index:i});
+    return out;
   }
 
-  const aLen=answerChars.length;
-  const bLen=inputChars.length;
-  const dp=Array.from({length:aLen+1},()=>Array(bLen+1).fill(0));
-  for(let i=aLen-1;i>=0;i--){
-    dp[i][bLen]=dp[i+1][bLen]+1;
+  function getWordRange(originalIndex){
+    let start=originalIndex;
+    let end=originalIndex;
+
+    while(start>0 && !/\s/.test(originalAnswer.charAt(start-1)))start--;
+    while(end<originalAnswer.length && !/\s/.test(originalAnswer.charAt(end)))end++;
+
+    return {start,end};
   }
-  for(let j=bLen-1;j>=0;j--){
-    dp[aLen][j]=dp[aLen][j+1]+1;
+
+  function rawInputSlice(fromCompact,toCompact){
+    if(fromCompact>=toCompact || fromCompact>=B.length)return "";
+
+    const start=B[fromCompact].index;
+    const end=toCompact<B.length
+      ? B[toCompact].index
+      : originalInput.length;
+
+    return originalInput.slice(start,end);
   }
-  for(let i=aLen-1;i>=0;i--){
-    for(let j=bLen-1;j>=0;j--){
-      const matchCost=answerChars[i].ch===inputChars[j] ? dp[i+1][j+1] : Infinity;
-      const wrongCost=dp[i+1][j+1]+1;
-      const missingCost=dp[i+1][j]+1;
-      const extraCost=dp[i][j+1]+1;
-      dp[i][j]=Math.min(matchCost,wrongCost,missingCost,extraCost);
+
+  const A=compact(originalAnswer);
+  const B=compact(originalInput);
+
+  if(!B.length){
+    return originalAnswer
+      ? `<span class="typingMissing">${esc(originalAnswer)}</span>`
+      : "<span class='note'>입력한 내용이 없습니다.</span>";
+  }
+
+  const n=A.length;
+  const m=B.length;
+
+  /*
+   * 공백을 제외한 반전역 편집거리.
+   * 정답 앞뒤 미입력은 비용 없이 허용하고,
+   * 입력 전체를 정답의 가장 자연스러운 연속 구간에 맞춥니다.
+   */
+  const dp=Array.from({length:n+1},()=>Array(m+1).fill(Infinity));
+  const prev=Array.from({length:n+1},()=>Array(m+1).fill(null));
+  const matchCount=Array.from({length:n+1},()=>Array(m+1).fill(0));
+  const startAt=Array.from({length:n+1},()=>Array(m+1).fill(0));
+
+  for(let i=0;i<=n;i++){
+    dp[i][0]=0;
+    startAt[i][0]=i;
+    if(i>0)prev[i][0]={i:i-1,j:0,op:"freePrefix"};
+  }
+
+  for(let j=1;j<=m;j++){
+    dp[0][j]=j;
+    startAt[0][j]=0;
+    prev[0][j]={i:0,j:j-1,op:"insert"};
+  }
+
+  function better(cost,matches,start,priority,bestCost,bestMatches,bestStart,bestPriority){
+    if(cost!==bestCost)return cost<bestCost;
+    if(matches!==bestMatches)return matches>bestMatches;
+    if(start!==bestStart)return start<bestStart;
+    return priority<bestPriority;
+  }
+
+  for(let i=1;i<=n;i++){
+    for(let j=1;j<=m;j++){
+      const same=A[i-1].ch===B[j-1].ch;
+
+      const candidates=[
+        {
+          cost:dp[i-1][j-1]+(same?0:1),
+          matches:matchCount[i-1][j-1]+(same?1:0),
+          start:startAt[i-1][j-1],
+          priority:0,
+          prev:{i:i-1,j:j-1,op:"pair"}
+        },
+        {
+          cost:dp[i-1][j]+1,
+          matches:matchCount[i-1][j],
+          start:startAt[i-1][j],
+          priority:1,
+          prev:{i:i-1,j:j,op:"delete"}
+        },
+        {
+          cost:dp[i][j-1]+1,
+          matches:matchCount[i][j-1],
+          start:startAt[i][j-1],
+          priority:2,
+          prev:{i:i,j:j-1,op:"insert"}
+        }
+      ];
+
+      let best=candidates[0];
+
+      for(let k=1;k<candidates.length;k++){
+        const cur=candidates[k];
+
+        if(better(
+          cur.cost,cur.matches,cur.start,cur.priority,
+          best.cost,best.matches,best.start,best.priority
+        )){
+          best=cur;
+        }
+      }
+
+      dp[i][j]=best.cost;
+      matchCount[i][j]=best.matches;
+      startAt[i][j]=best.start;
+      prev[i][j]=best.prev;
     }
   }
 
-  function inputCharAppearsAhead(i,j){
-    const target=inputChars[j];
-    if(!target)return false;
-    for(let k=i+1;k<aLen;k++){
-      if(answerChars[k].ch===target)return true;
+  // 정답 뒤쪽 미입력도 무료: 입력 전체를 사용한 최적 종료점을 선택
+  let endI=0;
+  let bestCost=Infinity;
+  let bestMatches=-1;
+  let bestStart=Infinity;
+
+  for(let i=0;i<=n;i++){
+    if(better(
+      dp[i][m],matchCount[i][m],startAt[i][m],0,
+      bestCost,bestMatches,bestStart,0
+    )){
+      bestCost=dp[i][m];
+      bestMatches=matchCount[i][m];
+      bestStart=startAt[i][m];
+      endI=i;
     }
-    return false;
   }
-  function answerCharAppearsAhead(i,j){
-    const target=answerChars[i]?.ch;
-    if(!target)return false;
-    for(let k=j+1;k<bLen;k++){
-      if(inputChars[k]===target)return true;
-    }
-    return false;
+
+  const ops=[];
+  let ci=endI;
+  let cj=m;
+
+  while(cj>0 || (ci>0 && prev[ci][cj] && prev[ci][cj].op!=="freePrefix")){
+    const p=prev[ci][cj];
+    if(!p)break;
+
+    ops.push({
+      op:p.op,
+      ai:p.op==="pair"||p.op==="delete" ? ci-1 : null,
+      bi:p.op==="pair"||p.op==="insert" ? cj-1 : null
+    });
+
+    ci=p.i;
+    cj=p.j;
   }
-  function sameRunLength(i,j){
-    let len=0;
-    while(i+len<aLen && j+len<bLen && answerChars[i+len].ch===inputChars[j+len])len++;
-    return len;
-  }
-  function hasBetterSameRunAhead(i,j){
-    const current=sameRunLength(i,j);
-    for(let k=i+1;k<aLen;k++){
-      if(answerChars[k].ch===inputChars[j] && sameRunLength(k,j)>current)return true;
-    }
-    return false;
-  }
+
+  ops.reverse();
 
   const classByIndex={};
-  const extraBefore={};
-  let i=0;
-  let j=0;
-  while(i<aLen || j<bLen){
-    if(i<aLen && j<bLen && answerChars[i].ch===inputChars[j] && dp[i][j]===dp[i+1][j+1] && !hasBetterSameRunAhead(i,j)){
-      classByIndex[answerChars[i].index]="typingCorrect";
-      i++;
-      j++;
-      continue;
-    }
+  const insertedBefore={};
 
-    const missingCost=i<aLen ? dp[i+1][j]+1 : Infinity;
-    const extraCost=j<bLen ? dp[i][j+1]+1 : Infinity;
-    const wrongCost=(i<aLen && j<bLen) ? dp[i+1][j+1]+1 : Infinity;
-    const best=Math.min(missingCost,extraCost,wrongCost);
+  // 기본은 정답 전체 회색
+  for(const a of A){
+    classByIndex[a.index]="typingMissing";
+  }
 
-    if(i<aLen && missingCost===best && (j>=bLen || inputCharAppearsAhead(i,j) || wrongCost!==best)){
-      classByIndex[answerChars[i].index]="typingMissing";
-      i++;
-    }else if(j<bLen && extraCost===best && (i>=aLen || answerCharAppearsAhead(i,j))){
-      const pos=i<aLen ? answerChars[i].index : originalAnswer.length;
-      extraBefore[pos]=(extraBefore[pos]||"")+inputChars[j]+(inputItems[j]?.trailing||"");
-      j++;
-    }else if(i<aLen && j<bLen && wrongCost===best){
-      classByIndex[answerChars[i].index]="typingWrong";
-      i++;
-      j++;
-    }else if(i<aLen){
-      classByIndex[answerChars[i].index]="typingMissing";
-      i++;
-    }else{
-      extraBefore[originalAnswer.length]=(extraBefore[originalAnswer.length]||"")+inputChars[j]+(inputItems[j]?.trailing||"");
-      j++;
+  const pairPositions=[];
+  for(let oi=0;oi<ops.length;oi++){
+    if(ops[oi].op==="pair")pairPositions.push(oi);
+  }
+
+  const firstPairPos=pairPositions.length ? pairPositions[0] : -1;
+  const lastPairPos=pairPositions.length ? pairPositions[pairPositions.length-1] : -1;
+
+  for(let oi=0;oi<ops.length;oi++){
+    const step=ops[oi];
+
+    if(step.op==="pair"){
+      const a=A[step.ai];
+      const b=B[step.bi];
+
+      classByIndex[a.index]=
+        a.ch===b.ch ? "typingCorrect" : "typingWrong";
+
+    }else if(step.op==="delete"){
+      // 실제 입력 구간 내부에서 빠뜨린 정답 글자만 빨강
+      if(oi>firstPairPos && oi<lastPairPos){
+        classByIndex[A[step.ai].index]="typingWrong";
+      }
+
+    }else if(step.op==="insert"){
+      /*
+       * 연속 insert는 첫 단계에서만 하나의 묶음으로 처리합니다.
+       * 이전 insert 단계가 있으면 이미 처리된 묶음이므로 건너뜁니다.
+       */
+      const isFirstInsertInRun=
+        oi===0 ||
+        ops[oi-1].op!=="insert" ||
+        ops[oi-1].bi!==step.bi-1;
+
+      if(!isFirstInsertInRun)continue;
+
+      let runEnd=oi+1;
+      while(
+        runEnd<ops.length &&
+        ops[runEnd].op==="insert" &&
+        ops[runEnd].bi===ops[runEnd-1].bi+1
+      ){
+        runEnd++;
+      }
+
+      let nextAnswerIndex=null;
+      for(let k=runEnd;k<ops.length;k++){
+        if(ops[k].ai!==null){
+          nextAnswerIndex=A[ops[k].ai].index;
+          break;
+        }
+      }
+
+      // 정답 뒤에 남는 마지막 추가 입력은 표시하지 않음
+      if(nextAnswerIndex!==null){
+        const firstBi=step.bi;
+        const lastBiExclusive=ops[runEnd-1].bi+1;
+        const raw=rawInputSlice(firstBi,lastBiExclusive);
+
+        if(raw){
+          if(!insertedBefore[nextAnswerIndex]){
+            insertedBefore[nextAnswerIndex]=[];
+          }
+          insertedBefore[nextAnswerIndex].push(raw);
+        }
+      }
     }
   }
 
-  let html="";
+  /*
+   * 입력 끝의 긴 오답을 정답의 해당 어절에 대응시킵니다.
+   * 예: 되었더라→됨을, 받았더니→받아
+   * 입력 오답 자체는 결과 끝에 붙이지 않고 정답 어절만 빨강 처리.
+   */
+  const trailingInsertOps=[];
+  for(let oi=lastPairPos+1;oi<ops.length;oi++){
+    if(ops[oi].op==="insert")trailingInsertOps.push(ops[oi]);
+  }
+
+  if(trailingInsertOps.length){
+    let targetIndex=null;
+
+    if(lastPairPos>=0){
+      const lastPair=ops[lastPairPos];
+      const lastAnswer=A[lastPair.ai];
+      const currentWord=getWordRange(lastAnswer.index);
+
+      // 마지막 일치 글자가 현재 어절 끝 이전이면 현재 어절,
+      // 어절 끝이면 다음 정답 어절을 치환 대상으로 선택.
+      if(lastAnswer.index<currentWord.end-1){
+        targetIndex=lastAnswer.index;
+      }else{
+        const nextA=lastPair.ai+1;
+        if(nextA<A.length)targetIndex=A[nextA].index;
+      }
+    }
+
+    if(targetIndex!==null){
+      const range=getWordRange(targetIndex);
+
+      for(let idx=range.start;idx<range.end;idx++){
+        if(!/\s/.test(originalAnswer.charAt(idx))){
+          classByIndex[idx]="typingWrong";
+        }
+      }
+    }
+  }
+
+  /*
+   * 정답 어절 내부에서 삽입/삭제가 발생한 경우 해당 정답 어절 전체 빨강.
+   * 단순 같은 길이 치환은 해당 글자만 빨강으로 유지.
+   */
+  const touchedWordRanges=[];
+
+  for(let oi=0;oi<ops.length;oi++){
+    const step=ops[oi];
+
+    if(step.op==="delete" && oi>firstPairPos && oi<lastPairPos){
+      touchedWordRanges.push(getWordRange(A[step.ai].index));
+    }
+  }
+
+  for(const positionText of Object.keys(insertedBefore)){
+    const pos=Number(positionText);
+    const range=getWordRange(pos);
+
+    // 어절 경계 앞의 삽입은 정답 어절을 빨강으로 만들지 않음.
+    if(pos>range.start){
+      touchedWordRanges.push(range);
+    }
+  }
+
+  for(const range of touchedWordRanges){
+    for(let idx=range.start;idx<range.end;idx++){
+      if(!/\s/.test(originalAnswer.charAt(idx))){
+        classByIndex[idx]="typingWrong";
+      }
+    }
+  }
+
+  let result="";
+
   for(let idx=0;idx<originalAnswer.length;idx++){
-    if(extraBefore[idx])html+=`<span class="typingExtra">${esc(extraBefore[idx])}</span>`;
+    if(insertedBefore[idx]){
+      result+=insertedBefore[idx]
+        .map(raw=>`<span class="typingExtra">${esc(raw)}</span>`)
+        .join("");
+    }
+
     const ch=originalAnswer.charAt(idx);
     const cls=classByIndex[idx];
-    html+=cls ? `<span class="${cls}">${esc(ch)}</span>` : esc(ch);
-  }
-  if(extraBefore[originalAnswer.length]){
-    html+=`<span class="typingExtra">${esc(extraBefore[originalAnswer.length])}</span>`;
+
+    result+=cls
+      ? `<span class="${cls}">${esc(ch)}</span>`
+      : esc(ch);
   }
 
-  return html || "<span class='note'>입력한 내용이 없습니다.</span>";
+  return result || "<span class='note'>입력한 내용이 없습니다.</span>";
 }
+
 window.openTypingPracticeBox=function(kq){
   if(activeTypingPracticeKey===kq){
     closeTypingPracticeBox();
@@ -2124,22 +2612,25 @@ function renderBookmarks(){
 
 
 window.openBookmark=function(ch,vs){
-  if(el.readChapterSelect){
-    setReadingCollapsed(false);
-    applyReadingCollapse();
-    el.readChapterSelect.value=String(ch);
-    renderReading();
-    const panel=document.getElementById("readingPanel");
-    if(panel)window.scrollTo({top:panel.offsetTop-10,behavior:"smooth"});
-    setTimeout(()=>{
-      const node=document.getElementById(`versebox-${ch}-${vs}`);
-      if(node)node.scrollIntoView({behavior:"smooth",block:"center"});
-      if(node){
-        node.classList.add("flashVerseBox");
-        setTimeout(()=>node.classList.remove("flashVerseBox"),1400);
-      }
-    },180);
-  }
+  if(window.openAppTarget) window.openAppTarget("reading",true);
+  setTimeout(()=>{
+    if(el.readChapterSelect){
+      setReadingCollapsed(false);
+      applyReadingCollapse();
+      el.readChapterSelect.value=String(ch);
+      renderReading();
+      const panel=document.getElementById("readingPanel");
+      if(panel)window.scrollTo({top:Math.max(0,panel.offsetTop-10),behavior:"smooth"});
+      setTimeout(()=>{
+        const node=document.getElementById(`versebox-${ch}-${vs}`);
+        if(node)node.scrollIntoView({behavior:"smooth",block:"center"});
+        if(node){
+          node.classList.add("flashVerseBox");
+          setTimeout(()=>node.classList.remove("flashVerseBox"),1400);
+        }
+      },180);
+    }
+  },40);
 }
 
 window.deleteBookmark=function(ch,vs){
@@ -2243,15 +2734,27 @@ function renderDeepStats(){
 }
 
 function jumpToReadingChapter(ch){
-  setReadingCollapsed(false);
-  applyReadingCollapse();
-  const select=document.getElementById("readChapterSelect");
-  if(select){
-    select.value=String(ch);
-    select.dispatchEvent(new Event("change"));
-  }
-  const panel=document.getElementById("readingPanel");
-  if(panel)window.scrollTo({top:panel.offsetTop-10,behavior:"smooth"});
+  const chapter=Number(ch);
+  if(!chapter || chapter<1 || chapter>22)return;
+
+  if(window.openAppTarget) window.openAppTarget("reading",true);
+
+  setTimeout(()=>{
+    if(el.readChapterSelect){
+      setReadingCollapsed(false);
+      applyReadingCollapse();
+      el.readChapterSelect.value=String(chapter);
+      renderReading();
+
+      const panel=document.getElementById("readingPanel");
+      if(panel){
+        window.scrollTo({
+          top:Math.max(0,panel.offsetTop-10),
+          behavior:"smooth"
+        });
+      }
+    }
+  },50);
 }
 window.jumpToReadingChapter=jumpToReadingChapter;
 
@@ -2311,22 +2814,25 @@ function shortVerseText(text){
 }
 
 window.openVerseFromList=function(ch,vs){
-  if(el.readChapterSelect){
-    setReadingCollapsed(false);
-    applyReadingCollapse();
-    el.readChapterSelect.value=String(ch);
-    renderReading();
-    const panel=document.getElementById("readingPanel");
-    if(panel)window.scrollTo({top:panel.offsetTop-10,behavior:"smooth"});
-    setTimeout(()=>{
-      const node=document.getElementById(`versebox-${ch}-${vs}`);
-      if(node)node.scrollIntoView({behavior:"smooth",block:"center"});
-      if(node){
-        node.classList.add("flashVerseBox");
-        setTimeout(()=>node.classList.remove("flashVerseBox"),1400);
-      }
-    },180);
-  }
+  if(window.openAppTarget) window.openAppTarget("reading",true);
+  setTimeout(()=>{
+    if(el.readChapterSelect){
+      setReadingCollapsed(false);
+      applyReadingCollapse();
+      el.readChapterSelect.value=String(ch);
+      renderReading();
+      const panel=document.getElementById("readingPanel");
+      if(panel)window.scrollTo({top:Math.max(0,panel.offsetTop-10),behavior:"smooth"});
+      setTimeout(()=>{
+        const node=document.getElementById(`versebox-${ch}-${vs}`);
+        if(node)node.scrollIntoView({behavior:"smooth",block:"center"});
+        if(node){
+          node.classList.add("flashVerseBox");
+          setTimeout(()=>node.classList.remove("flashVerseBox"),1400);
+        }
+      },180);
+    }
+  },40);
 }
 
 window.deleteFavoriteVerse=function(ch,vs){
@@ -2497,7 +3003,7 @@ function renderPrayer(){
       <div class="smallBtns verseReadActions prayerActionBtns">
         <button class="secondary prayerEditBtn" onclick="editPrayer(${p.id})">✏️ 수정</button>
         <button class="secondary prayerDoneBtn" onclick="togglePrayerAnswered(${p.id})">${p.status==="응답/완료"?"↩️ 진행중":"✅ 응답 완료"}</button>
-        <button class="secondary" onclick="togglePrayerPin(${p.id})">${p.pinned?"📌 고정 해제":"📌 고정"}</button>
+        <button class="secondary prayerPinBtn" onclick="togglePrayerPin(${p.id})">${p.pinned?"📌 고정 해제":"📌 고정"}</button>
         <button class="ghost danger prayerDeleteBtn" onclick="deletePrayer(${p.id})">🗑 삭제</button>
       </div>
     </div>
@@ -3378,8 +3884,8 @@ function renderAll(){
   applyReadingCollapse();
 }
 
-if(el.settingsBtn) el.settingsBtn.onclick=()=>el.settingsPanel.classList.toggle("hidden");
-if(el.closeSettingsBtn) el.closeSettingsBtn.onclick=()=>el.settingsPanel.classList.add("hidden");
+if(el.settingsBtn) el.settingsBtn.onclick=()=>{ if(window.openAppTarget) window.openAppTarget("settings",true); else el.settingsPanel.classList.toggle("hidden"); };
+if(el.closeSettingsBtn) el.closeSettingsBtn.onclick=()=>{ if(window.showHomeScreen) window.showHomeScreen(); else el.settingsPanel.classList.add("hidden"); };
 if(el.openImportFromSettingsBtn) el.openImportFromSettingsBtn.onclick=()=>{
   el.settingsPanel.classList.add("hidden");
   if(el.importPanel){
@@ -3547,6 +4053,258 @@ if(document.getElementById("nextCalendarMonthBtn"))document.getElementById("next
   const detail=document.getElementById("calendarDayDetail"); if(detail)detail.classList.add("hidden");
   renderCalendar();
 };
+
+
+/* v5.69 UI_TEST_v2_fixed - Dashboard navigation */
+(function(){
+  const LAST_KEY="gm_v569_ui_last_category";
+  const LABELS={
+    home:"홈",
+    mainStudy:"메인 학습",
+    learningStatus:"학습 현황",
+    reading:"본문 읽기",
+    exam:"시험",
+    review:"오늘의 복습",
+    wrong:"오답노트",
+    confuse:"헷갈림",
+    favorite:"즐겨찾기",
+    bookmark:"책갈피",
+    memoryStatus:"암기 현황",
+    achievement:"성취 배지",
+    calendar:"공부 캘린더",
+    timeline:"최근 공부 타임라인",
+    deepStats:"나의 암기 기록",
+    records:"학습 기록",
+    prayer:"기도",
+    settings:"설정"
+  };
+  const TARGETS={
+    mainStudy:["mainStudyMenuPanel"],
+    learningStatus:["learningStatusMenuPanel"],
+    reading:["readingPanel"],
+    exam:["examSettingsPanel","examPanel","bulkExamPanel","resultPanel"],
+    review:["todayReviewPanel"],
+    wrong:["wrongNotePanel"],
+    confuse:["confuseQuickPanel"],
+    favorite:["favoriteQuickPanel"],
+    bookmark:["bookmarkHomePanel"],
+    memoryStatus:["memoryStatusPanel"],
+    achievement:["achievementPanel"],
+    calendar:["calendarPanel"],
+    timeline:["studyTimelinePanel"],
+    deepStats:["deepStatsPanel"],
+    records:["recordsPanel"],
+    search:["searchPanel"],
+    prayer:["prayerPanel"],
+    settings:["settingsPanel"]
+  };
+
+  function panels(){return Array.from(document.querySelectorAll(".appScreenPanel"));}
+  function setBottomActive(name){
+    document.querySelectorAll(".bottomNavBtn").forEach(btn=>{
+      btn.classList.toggle("active",btn.dataset.bottomTarget===name);
+    });
+  }
+  function ensureBackButtons(){
+    panels().forEach(panel=>{
+      let btn=panel.querySelector(".homeBackBtn");
+      if(!btn){
+        btn=document.createElement("button");
+        btn.type="button";
+        btn.className="ghost homeBackBtn";
+        panel.insertBefore(btn,panel.firstChild);
+      }
+
+      const id=panel.id || "";
+      const isMainMenu=id==="mainStudyMenuPanel";
+      const isStatusMenu=id==="learningStatusMenuPanel";
+      const isMainChild=panel.classList.contains("target-mainStudy") && !isMainMenu;
+      const isStatusChild=panel.classList.contains("target-learningStatus") && !isStatusMenu;
+
+      if(isMainChild){
+        btn.textContent="← 메인 학습";
+        btn.onclick=()=>openAppTarget("mainStudy",false);
+      }else if(isStatusChild){
+        btn.textContent="← 학습 현황";
+        btn.onclick=()=>openAppTarget("learningStatus",false);
+      }else{
+        btn.textContent="← 홈으로";
+        btn.onclick=()=>showHomeScreen();
+      }
+    });
+  }
+  function updateRecent(){
+    const btn=document.getElementById("recentHomeBtn");
+    if(!btn) return;
+    const last=localStorage.getItem(LAST_KEY);
+    if(last && LABELS[last] && last!=="home"){
+      btn.textContent="최근 사용: "+LABELS[last];
+      btn.classList.remove("hidden");
+      btn.onclick=()=>openAppTarget(last,true);
+    }else{
+      btn.classList.add("hidden");
+      btn.onclick=null;
+    }
+  }
+  function updateHomeSummaries(){
+    // Achievement summary: show actual earned badges and earned/total count.
+    const badgePreview=document.getElementById("homeBadgePreview");
+    const achievementSummary=document.getElementById("homeAchievementSummary");
+    try{
+      const defs=typeof achievementDefinitions==="function" ? achievementDefinitions() : [];
+      const earned=defs.filter(x=>x.done);
+      if(badgePreview){
+        badgePreview.innerHTML=earned.length
+          ? earned.slice(0,5).map(x=>`<span class="homeEarnedBadge" title="${esc(x.title||"")}">${x.icon||"🏅"}</span>`).join("")
+          : `<span class="homeEmptyMini">아직 획득한 배지가 없습니다.</span>`;
+      }
+      if(achievementSummary){
+        achievementSummary.textContent=`획득 ${earned.length}개 / 전체 ${defs.length}개`;
+      }
+    }catch(e){
+      if(badgePreview) badgePreview.textContent="배지 정보를 불러오지 못했습니다.";
+      if(achievementSummary) achievementSummary.textContent="";
+    }
+
+    // Weekly calendar summary: current week, actual studied dates and streak.
+    const weekBox=document.getElementById("homeCalendarWeek");
+    const calendarSummary=document.getElementById("homeCalendarSummary");
+    try{
+      const today=new Date();
+      today.setHours(0,0,0,0);
+      const day=today.getDay();
+      const monday=new Date(today);
+      monday.setDate(today.getDate()-((day+6)%7));
+      const labels=["월","화","수","목","금","토","일"];
+      const streak=typeof calcStudyStreaks==="function" ? calcStudyStreaks() : {current:0,set:new Set()};
+      let studied=0;
+      const cells=labels.map((label,i)=>{
+        const d=new Date(monday);
+        d.setDate(monday.getDate()+i);
+        const iso=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+        let active=false;
+        if(streak && streak.set && typeof streak.set.has==="function") active=streak.set.has(iso);
+        if(active) studied++;
+        const isToday=iso===dateISO();
+        return `<div class="homeWeekDay ${active?"active":""} ${isToday?"today":""}">
+          <span>${label}</span><b>${d.getDate()}</b><i></i>
+        </div>`;
+      }).join("");
+      if(weekBox) weekBox.innerHTML=cells;
+      if(calendarSummary) calendarSummary.textContent=`이번 주 ${studied}일 공부 · 현재 ${Number(streak.current)||0}일 연속`;
+    }catch(e){
+      if(weekBox) weekBox.innerHTML="";
+      if(calendarSummary) calendarSummary.textContent="이번 주 기록을 불러오지 못했습니다.";
+    }
+
+    // Recent timeline summary: latest three study items with date/time and type.
+    const timeline=document.getElementById("homeTimelineSummary");
+    try{
+      const rs=typeof records==="function" ? records().slice(0,3) : [];
+      if(!timeline) return;
+      if(!rs.length){
+        timeline.innerHTML=`<span class="homeEmptyMini">아직 공부 기록이 없습니다.</span>`;
+      }else{
+        timeline.innerHTML=rs.map(r=>{
+          const rawDate=String(r.date||r.dateISO||"").trim();
+          const when=rawDate || "날짜 없음";
+          const mode=esc(r.mode||"학습");
+          const timeText=r.durationText || (r.duration ? fmt(Number(r.duration)||0) : "");
+          return `<div class="homeTimelineLine">
+            <span>${esc(when)}</span>
+            <b>${mode}${timeText?` · ${esc(timeText)}`:""}</b>
+          </div>`;
+        }).join("");
+      }
+    }catch(e){
+      if(timeline) timeline.textContent="최근 기록을 불러오지 못했습니다.";
+    }
+  }
+
+  function showHomeScreen(){
+    ensureBackButtons();
+    document.body.classList.add("uiHomeMode");
+    document.body.classList.remove("uiCategoryMode");
+    panels().forEach(panel=>panel.classList.remove("activeAppTarget"));
+    const settings=document.getElementById("settingsPanel");
+    if(settings) settings.classList.add("hidden");
+    setBottomActive("home");
+    updateHomeSummaries();
+    updateRecent();
+    window.scrollTo({top:0,behavior:"smooth"});
+  }
+
+  function openAppTarget(name,remember=true){
+    ensureBackButtons();
+    const ids=TARGETS[name]||[];
+    document.body.classList.remove("uiHomeMode");
+    document.body.classList.add("uiCategoryMode");
+    panels().forEach(panel=>panel.classList.remove("activeAppTarget"));
+    ids.forEach(id=>{
+      const panel=document.getElementById(id);
+      if(panel){
+        panel.classList.add("activeAppTarget");
+        if(name==="settings") panel.classList.remove("hidden");
+      }
+    });
+    if(remember){
+      localStorage.setItem(LAST_KEY,name);
+      updateRecent();
+    }
+    if(name==="prayer"||name==="settings"||name==="search") setBottomActive(name);
+    else setBottomActive("home");
+
+    setTimeout(()=>{
+      let scrollTarget=null;
+      if(name==="achievement") scrollTarget=document.getElementById("achievementPanel");
+      else if(name==="calendar") scrollTarget=document.getElementById("calendarPanel");
+      else if(name==="timeline") scrollTarget=document.getElementById("studyTimelinePanel");
+      else if(name==="memoryStatus") scrollTarget=document.getElementById("memoryStatusPanel");
+      else if(name==="deepStats") scrollTarget=document.getElementById("deepStatsPanel");
+      else if(name==="records") scrollTarget=document.getElementById("recordsPanel");
+      else scrollTarget=ids.map(id=>document.getElementById(id)).find(panel=>panel && !panel.classList.contains("hidden"));
+      if(scrollTarget) window.scrollTo({top:Math.max(0,scrollTarget.offsetTop-10),behavior:"smooth"});
+    },30);
+  }
+
+  function bind(){
+    ensureBackButtons();
+    document.querySelectorAll("[data-bottom-target]").forEach(btn=>{
+      btn.onclick=()=>{
+        const target=btn.dataset.bottomTarget;
+        if(target==="home") showHomeScreen();
+        else openAppTarget(target,true);
+      };
+    });
+    document.querySelectorAll("[data-open-category]").forEach(card=>{
+      card.onclick=()=>openAppTarget(card.dataset.openCategory,true);
+    });
+    document.querySelectorAll("[data-open-feature]").forEach(item=>{
+      item.onclick=(e)=>{
+        e.stopPropagation();
+        openAppTarget(item.dataset.openFeature,true);
+      };
+    });
+    updateHomeSummaries();
+    updateRecent();
+    showHomeScreen();
+  }
+
+  window.showHomeScreen=showHomeScreen;
+  window.openAppTarget=openAppTarget;
+  window.showHomeCategory=openAppTarget;
+  window.ensureExamHomeCategoryVisible=function(){
+    openAppTarget("exam",true);
+    ["examSettingsPanel","examPanel","bulkExamPanel","resultPanel"].forEach(id=>{
+      const panel=document.getElementById(id);
+      if(panel) panel.classList.add("activeAppTarget");
+    });
+  };
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+})();
+
 
 ensureDefaultVerses();
 renderAll();
