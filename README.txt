@@ -641,3 +641,9 @@ Scoring Engine Stable Update
   - Chrome과 유사한 높이, 패딩, 테두리 반경으로 정규화
   - iPhone·iPad Safari 및 다른 브라우저에는 적용하지 않음
   - 시험 설정, 본문 읽기, 기도 화면의 선택창에 공통 적용
+
+- macOS 데스크톱 Safari 선택창 크기 재조정
+  - 선택창 높이를 Chrome과 유사한 36px로 축소
+  - 굵게 상속되던 선택창 글자를 기본 굵기로 고정
+  - 내부 패딩, 모서리, 화살표 크기 축소
+  - iPhone·iPad Safari 및 다른 브라우저에는 영향 없음
