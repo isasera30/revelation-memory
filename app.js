@@ -4082,7 +4082,7 @@ if(document.getElementById("nextCalendarMonthBtn"))document.getElementById("next
     confuse:"헷갈림",
     favorite:"즐겨찾기",
     bookmark:"책갈피",
-    memoryStatus:"암기 현황",
+    memoryStatus:"암기 체크·현황",
     achievement:"성취 배지",
     calendar:"공부 캘린더",
     timeline:"최근 공부 타임라인",
