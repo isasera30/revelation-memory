@@ -934,7 +934,7 @@ body.dark .chapterBox .chapterMiniBar{background:#4a3d32}
   white-space:nowrap !important;
 }
 #calendar{
-  margin-top:8px !important;
+  margin-top:14px !important;
 }
 @media(max-width:760px){
   .calendarMonthNavWithStreak{
@@ -3822,4 +3822,26 @@ body.uiCategoryMode .appScreenPanel.activeAppTarget.hidden{
     line-height:1.1 !important;
     margin-top:2px !important;
   }
+}
+
+
+.footer-copyright{
+  text-align:center;
+  font-size:10px;
+  line-height:1.5;
+  color:#999;
+  opacity:.7;
+  user-select:none;
+  margin:40px 0 76px;
+}
+@media (max-width:768px){
+  .footer-copyright{
+    font-size:9px;
+    margin:32px 0 72px;
+  }
+}
+
+/* Recent study timeline: add a small gap above only the '전체 보기' button */
+#homeTimelineSummary{
+  margin-bottom:7px !important;
 }

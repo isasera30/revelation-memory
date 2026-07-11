@@ -1104,7 +1104,20 @@ function startExam(){
   if(state.examAdjustedMessage)alert(state.examAdjustedMessage);
   const bulkPanel=document.getElementById("bulkExamPanel");
   if(bulkPanel)bulkPanel.classList.add("hidden");
-  el.examPanel.classList.remove("hidden");el.resultPanel.classList.add("hidden");renderQuestion();window.scrollTo({top:el.examPanel.offsetTop-10,behavior:"smooth"});
+  el.examPanel.classList.remove("hidden");
+  el.resultPanel.classList.add("hidden");
+  renderQuestion();
+  /*
+   * openAppTarget("exam") 내부의 30ms 스크롤이 끝난 뒤 실행합니다.
+   * 모바일 키보드가 위치를 다시 바꾸지 않도록 자동 focus는 사용하지 않습니다.
+   */
+  setTimeout(()=>{
+    requestAnimationFrame(()=>{
+      const target=el.examPanel;
+      const top=target.getBoundingClientRect().top+window.pageYOffset-20;
+      window.scrollTo({top:Math.max(0,top),behavior:"smooth"});
+    });
+  },90);
 }
 function renderQuestion(){
   const q=state.qs[state.i], mode=el.modeSelect.value==="review"?"write":el.modeSelect.value;
@@ -4138,7 +4151,7 @@ if(document.getElementById("nextCalendarMonthBtn"))document.getElementById("next
     if(!btn) return;
     const last=localStorage.getItem(LAST_KEY);
     if(last && LABELS[last] && last!=="home"){
-      btn.textContent="최근 사용: "+LABELS[last];
+      btn.textContent=LABELS[last];
       btn.classList.remove("hidden");
       btn.onclick=()=>openAppTarget(last,true);
     }else{
