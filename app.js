@@ -4288,7 +4288,6 @@ if(document.getElementById("nextCalendarMonthBtn"))document.getElementById("next
     setBottomActive("home");
     updateHomeSummaries();
     updateRecent();
-    window.scrollTo({top:0,behavior:"smooth"});
   }
 
   function openAppTarget(name,remember=true){
@@ -4307,21 +4306,21 @@ if(document.getElementById("nextCalendarMonthBtn"))document.getElementById("next
     if(remember){
       localStorage.setItem(LAST_KEY,name);
       updateRecent();
+    if(name==="reading"){
+      requestAnimationFrame(()=>{
+        const panel=document.getElementById("readingPanel");
+        if(panel){
+          window.scrollTo({
+            top:Math.max(0,panel.offsetTop-10),
+            behavior:"auto"
+          });
+        }
+      });
+    }
     }
     if(name==="prayer"||name==="settings"||name==="search") setBottomActive(name);
     else setBottomActive("home");
 
-    setTimeout(()=>{
-      let scrollTarget=null;
-      if(name==="achievement") scrollTarget=document.getElementById("achievementPanel");
-      else if(name==="calendar") scrollTarget=document.getElementById("calendarPanel");
-      else if(name==="timeline") scrollTarget=document.getElementById("studyTimelinePanel");
-      else if(name==="memoryStatus") scrollTarget=document.getElementById("memoryStatusPanel");
-      else if(name==="deepStats") scrollTarget=document.getElementById("deepStatsPanel");
-      else if(name==="records") scrollTarget=document.getElementById("recordsPanel");
-      else scrollTarget=ids.map(id=>document.getElementById(id)).find(panel=>panel && !panel.classList.contains("hidden"));
-      if(scrollTarget) window.scrollTo({top:Math.max(0,scrollTarget.offsetTop-10),behavior:"smooth"});
-    },30);
   }
 
   function bind(){
