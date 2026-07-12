@@ -3956,3 +3956,258 @@ html.desktopSafari body.dark select{
   color:#f3eadf;
   border-color:#4a3d32;
 }
+
+/* Verse-list sort button: identical .secondary button styling */
+.listSortButton{
+  white-space:nowrap;
+}
+
+/* v5.72 rebuilt responsive layout for verse-list controls */
+/* Tablet: keep bookmark/favorite/confusion controls compact and aligned. */
+@media (min-width:521px) and (max-width:1024px){
+  #bookmarkList .quickExamHeader,
+  #favoriteQuickPanel .verseListQuickHeader,
+  #confuseQuickPanel .verseListQuickHeader{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:space-between !important;
+    gap:12px !important;
+    flex-wrap:nowrap !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickText,
+  #confuseQuickPanel .verseListQuickText{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickActions,
+  #confuseQuickPanel .verseListQuickActions,
+  #bookmarkList .quickExamHeader .topActions{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center !important;
+    justify-content:flex-end !important;
+    gap:8px !important;
+    flex-wrap:nowrap !important;
+    width:auto !important;
+    flex:0 0 auto !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickActions > button,
+  #confuseQuickPanel .verseListQuickActions > button,
+  #bookmarkList .quickExamHeader .topActions > button{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:36px !important;
+    min-height:36px !important;
+    padding:0 14px !important;
+    margin:0 !important;
+    border-radius:999px !important;
+    font-size:13px !important;
+    line-height:36px !important;
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* Mobile: wrong note, favorite and confusion use the same 2+1 button layout. */
+@media (max-width:520px){
+  #wrongNotePanel .sectionTitle,
+  #favoriteQuickPanel .verseListQuickHeader,
+  #confuseQuickPanel .verseListQuickHeader{
+    display:block !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickText,
+  #confuseQuickPanel .verseListQuickText{
+    width:100% !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickText h2,
+  #confuseQuickPanel .verseListQuickText h2{
+    margin-bottom:8px !important;
+  }
+
+  #favoriteQuickPanel .verseListQuickText .note,
+  #confuseQuickPanel .verseListQuickText .note{
+    margin:0 0 18px !important;
+  }
+
+  #wrongNotePanel .compactActions,
+  #favoriteQuickPanel .verseListQuickActions,
+  #confuseQuickPanel .verseListQuickActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+    width:100% !important;
+    margin-top:18px !important;
+  }
+
+  #wrongNotePanel .compactActions > button,
+  #favoriteQuickPanel .verseListQuickActions > button,
+  #confuseQuickPanel .verseListQuickActions > button{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 10px !important;
+    margin:0 !important;
+    border-radius:999px !important;
+    font-size:14px !important;
+    line-height:44px !important;
+    flex:none !important;
+    white-space:nowrap !important;
+  }
+
+  #wrongNotePanel #startWrongNoteBtn,
+  #favoriteQuickPanel #startFavoriteOnlyBtn,
+  #confuseQuickPanel #startConfuseOnlyBtn{
+    grid-column:1 / -1 !important;
+  }
+
+  /* Bookmark has two controls only; keep them in one row and prevent circular growth. */
+  #bookmarkList .quickExamHeader{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:14px !important;
+  }
+
+  #bookmarkList .quickExamHeader .topActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+
+  #bookmarkList .quickExamHeader .topActions > button{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:0 10px !important;
+    margin:0 !important;
+    border-radius:999px !important;
+    font-size:14px !important;
+    line-height:44px !important;
+    flex:none !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* Mobile only: place favorite/confusion exam button below sort + collapse */
+@media (max-width:600px){
+  #favoriteQuickPanel .topActions,
+  #confuseQuickPanel .topActions{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+
+  #favoriteQuickPanel .topActions > button,
+  #confuseQuickPanel .topActions > button{
+    width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+
+  #favoriteQuickPanel #startFavoriteOnlyBtn,
+  #confuseQuickPanel #startConfuseOnlyBtn{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+  }
+
+  #favoriteQuickPanel .listSortButton,
+  #confuseQuickPanel .listSortButton{
+    grid-column:1 !important;
+    grid-row:1 !important;
+  }
+
+  #favoriteQuickPanel #toggleFavoriteListBtn,
+  #confuseQuickPanel #toggleConfuseListBtn{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+}
+
+/* Tablet only: safe Today Review header layout */
+@media (min-width:761px) and (max-width:1024px){
+  #todayReviewPanel .sectionTitle{
+    display:grid !important;
+    grid-template-columns:minmax(280px, 1fr) auto !important;
+    align-items:start !important;
+    column-gap:24px !important;
+  }
+
+  #todayReviewPanel .sectionTitle > div:first-child{
+    width:auto !important;
+    min-width:280px !important;
+  }
+
+  #todayReviewPanel .sectionTitle .actions.compactActions{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    justify-content:flex-end !important;
+    align-items:center !important;
+    gap:10px !important;
+    width:auto !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+
+  #todayReviewPanel .sectionTitle .actions.compactActions > button{
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:38px !important;
+    min-height:38px !important;
+    padding:0 14px !important;
+    margin:0 !important;
+    font-size:13px !important;
+    line-height:38px !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* PC half-window and tablet only: stacked cards + 7 main shortcuts in one row */
+@media (min-width:521px) and (max-width:1400px){
+  #homePanel .homeShortcutSection{
+    grid-template-columns:1fr !important;
+  }
+
+  #homePanel .homeEntryCard[data-open-category="mainStudy"] .homePillGroups{
+    display:flex !important;
+    flex-direction:row !important;
+    flex-wrap:nowrap !important;
+    justify-content:flex-start !important;
+    align-items:center !important;
+    gap:10px !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  #homePanel .homeEntryCard[data-open-category="mainStudy"] .homePillRow-primary,
+  #homePanel .homeEntryCard[data-open-category="mainStudy"] .homePillRow-secondary{
+    display:contents !important;
+  }
+
+  #homePanel .homeEntryCard[data-open-category="mainStudy"] .homePill{
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    padding-left:14px !important;
+    padding-right:14px !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+}

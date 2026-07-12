@@ -312,6 +312,7 @@
 <p class="note">시험에서 틀린 절이 자동으로 모입니다. 3회 연속 맞히면 해결됨으로 표시됩니다.</p>
 </div>
 <div class="actions compactActions">
+<button class="secondary listSortButton" data-verse-list-sort type="button" onclick="toggleVerseListSortOrder()">오름차순</button>
 <button class="secondary" id="toggleWrongNoteBtn" type="button">▲ 접기</button>
 <button class="primary" id="startWrongNoteBtn">오답만 시험보기</button>
 </div>
@@ -505,20 +506,28 @@
 <div class="list" id="searchResults"></div>
 </section>
 <section class="panel favoriteQuickPanel appScreenPanel target-mainStudy target-favorite" id="favoriteQuickPanel">
-<div class="quickExamHeader">
+<div class="quickExamHeader verseListQuickHeader">
+<div class="verseListQuickText">
 <h2>⭐ 즐겨찾기 절</h2>
-<div class="topActions">
+<p class="note">즐겨찾기한 절을 모아서 확인하고 시험볼 수 있습니다.</p>
+</div>
+<div class="topActions verseListQuickActions">
 <button class="primary" id="startFavoriteOnlyBtn">즐겨찾기 시험</button>
+<button class="secondary listSortButton" data-verse-list-sort type="button" onclick="toggleVerseListSortOrder()">오름차순</button>
 <button class="secondary" id="toggleFavoriteListBtn" type="button">▲ 접기</button>
 </div>
 </div>
 <div class="list" id="favoriteList"></div>
 </section>
 <section class="panel confuseQuickPanel appScreenPanel target-mainStudy target-confuse" id="confuseQuickPanel">
-<div class="quickExamHeader">
+<div class="quickExamHeader verseListQuickHeader">
+<div class="verseListQuickText">
 <h2>📝 헷갈림 노트</h2>
-<div class="topActions">
+<p class="note">헷갈리는 절을 모아서 확인하고 시험볼 수 있습니다.</p>
+</div>
+<div class="topActions verseListQuickActions">
 <button class="primary" id="startConfuseOnlyBtn">헷갈림 시험</button>
+<button class="secondary listSortButton" data-verse-list-sort type="button" onclick="toggleVerseListSortOrder()">오름차순</button>
 <button class="secondary" id="toggleConfuseListBtn" type="button">▲ 접기</button>
 </div>
 </div>

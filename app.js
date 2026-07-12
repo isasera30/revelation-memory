@@ -632,6 +632,45 @@ function startConfuseOnlyExam(){
 }
 
 
+
+function getVerseListSortOrder(){
+  const s=settings();
+  return s.verseListSortOrder==="desc" ? "desc" : "asc";
+}
+
+function sortVersesByReference(list){
+  const direction=getVerseListSortOrder()==="desc" ? -1 : 1;
+  return [...(list||[])].sort((a,b)=>{
+    const chapterDiff=(Number(a.chapter)||0)-(Number(b.chapter)||0);
+    if(chapterDiff)return chapterDiff*direction;
+    return ((Number(a.verse)||0)-(Number(b.verse)||0))*direction;
+  });
+}
+
+function syncVerseListSortControls(){
+  const value=getVerseListSortOrder();
+  const label=value==="desc" ? "내림차순" : "오름차순";
+  document.querySelectorAll("[data-verse-list-sort]").forEach(button=>{
+    button.textContent=label;
+    button.setAttribute("aria-label",`현재 정렬: ${label}. 클릭하면 정렬 방향이 바뀝니다.`);
+  });
+}
+
+window.toggleVerseListSortOrder=function(){
+  const next=getVerseListSortOrder()==="asc" ? "desc" : "asc";
+  window.setVerseListSortOrder(next);
+};
+
+window.setVerseListSortOrder=function(value){
+  const s=settings();
+  s.verseListSortOrder=value==="desc" ? "desc" : "asc";
+  setSettings(s);
+  renderWrongNotes();
+  renderBookmarks();
+  renderLists();
+  syncVerseListSortControls();
+};
+
 function getWrongReviewCollapsed(name){
   const s=settings();
   s.wrongReviewCollapsed=s.wrongReviewCollapsed||{};
@@ -664,22 +703,20 @@ function renderWrongNotes(){
     box.innerHTML="<p class='note'>아직 오답노트에 저장된 절이 없습니다.</p>";
     return;
   }
-  const active=list.filter(v=>isWrongForNote(v)).sort((a,b)=>{
-    const ra=mem()[key(a)]||{}, rb=mem()[key(b)]||{};
-    return (rb.wrongNoteWrong||rb.wrong||0)-(ra.wrongNoteWrong||ra.wrong||0) || verseOrder(a.chapter,a.verse)-verseOrder(b.chapter,b.verse);
-  });
+  const active=sortVersesByReference(list.filter(v=>isWrongForNote(v)));
   const activeKeys=new Set(active.map(v=>key(v)));
-  const resolved=list.filter(v=>!activeKeys.has(key(v)));
+  const resolved=sortVersesByReference(list.filter(v=>!activeKeys.has(key(v))));
   const rate=(active.length+resolved.length)?Math.round(resolved.length/(active.length+resolved.length)*100):0;
   const priority=w=>"★★★★★".slice(0,Math.min(5,Math.max(1,Number(w)||1)));
   box.innerHTML=
-    `<div class="item wrongSummary"><b>오답 해결률 ${rate}%</b><br><span class="badge">활성 오답 ${active.length}절</span><span class="badge">해결된 오답 ${resolved.length}절</span><br><span class="note">많이 틀린 구절이 위로 정렬됩니다.</span></div>`+
+    `<div class="item wrongSummary"><b>오답 해결률 ${rate}%</b><br><span class="badge">활성 오답 ${active.length}절</span><span class="badge">해결된 오답 ${resolved.length}절</span><br><span class="note">장·절 순서로 정렬됩니다.</span></div>`+
     active.map(v=>{
       const r=mem()[key(v)]||{};
       const wrongCount=r.wrongNoteWrong||r.wrong||1;
       return `<div class="item wrongPriorityItem"><b>계 ${v.chapter}:${v.verse}</b> <span class="wrongStars">${priority(wrongCount)}</span><br>${esc(v.text)}<br><span class="badge">오답 ${wrongCount}회</span><span class="badge">해결 연속 ${r.wrongNoteStreak||0}/3</span></div>`;
     }).join("")+
     (resolved.length?`<details class="item"><summary><b>해결된 오답 ${resolved.length}절</b></summary>${resolved.slice(0,20).map(v=>`<div class="miniLine">계 ${v.chapter}:${v.verse} ${esc(v.text)}</div>`).join("")}</details>`:"");
+  syncVerseListSortControls();
 }
 
 
@@ -2615,12 +2652,18 @@ function bookmarkCurrentChapter(){
 function renderBookmarks(){
   if(!el.bookmarkList)return;
   const s=settings();
-  const list=s.bookmarks||[];
+  const direction=getVerseListSortOrder()==="desc" ? -1 : 1;
+  const list=[...(s.bookmarks||[])].sort((a,b)=>{
+    const chapterDiff=(Number(a.chapter)||0)-(Number(b.chapter)||0);
+    if(chapterDiff)return chapterDiff*direction;
+    return ((Number(a.verse)||0)-(Number(b.verse)||0))*direction;
+  });
   const body=list.length
     ? list.slice(0,20).map(b=>`<div class="item bookmarkItem"><div><b>요한계시록 ${b.chapter}:${b.verse}</b></div><div class="smallBtns verseReadActions prayerActionBtns"><button class="secondary" onclick="openBookmark(${b.chapter},${b.verse})">열기</button><button class="ghost danger" onclick="deleteBookmark(${b.chapter},${b.verse})">삭제</button></div></div>`).join("")
     : "";
-  el.bookmarkList.innerHTML=`<div class="quickExamHeader"><h3 class="subTitle">📌 저장한 책갈피</h3><button id="toggleBookmarkListBtn" type="button" class="secondary" onclick="toggleBookmarkListCollapse()">▲ 접기</button></div><div id="bookmarkListContent">${body}</div>`;
+  el.bookmarkList.innerHTML=`<div class="quickExamHeader"><h3 class="subTitle">📌 저장한 책갈피</h3><div class="topActions"><button class="secondary listSortButton" data-verse-list-sort type="button" onclick="toggleVerseListSortOrder()">오름차순</button><button id="toggleBookmarkListBtn" type="button" class="secondary" onclick="toggleBookmarkListCollapse()">▲ 접기</button></div></div><div id="bookmarkListContent">${body}</div>`;
   applyBookmarkFavoriteCollapse();
+  syncVerseListSortControls();
 }
 
 
@@ -2876,8 +2919,8 @@ window.deleteConfuseVerse=function(kq){
 
 function renderLists(){
   const all=verses(), m=mem();
-  const fav=all.filter(v=>m[key(v)]?.fav);
-  const conf=all.filter(v=>m[key(v)]?.confuse && !m[key(v)]?.resolved);
+  const fav=sortVersesByReference(all.filter(v=>m[key(v)]?.fav));
+  const conf=sortVersesByReference(all.filter(v=>m[key(v)]?.confuse && !m[key(v)]?.resolved));
 
   if(el.favoriteList){
     el.favoriteList.innerHTML=fav.map(v=>`
@@ -2908,6 +2951,7 @@ function renderLists(){
     }).join("") || "<p class='note'>헷갈림 노트가 비어 있습니다.</p>";
   }
   applyBookmarkFavoriteCollapse();
+  syncVerseListSortControls();
 }
 window.resolveConfuse=function(kq){const m=mem();if(m[kq]){m[kq].resolved=true;setMem(m);renderAll()}}
 

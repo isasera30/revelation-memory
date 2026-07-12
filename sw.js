@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-71-desktop-safari-form-fix-v3";
+const CACHE="gyesirok-memory-v5-72-home-layout-final-fix";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {
