@@ -1,4 +1,4 @@
-const CACHE="gyesirok-memory-v5-72-reading-open-scroll-fix";
+const CACHE="gyesirok-memory-v5-73-tablet-wrongnote-one-row";
 const ASSETS=["./","./index.html","./style.css","./app.js","./manifest.json","./icon-192.png","./icon-512.png"];
 
 self.addEventListener("install", event => {
